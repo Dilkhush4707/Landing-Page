@@ -36,11 +36,58 @@
             background-size: cover;
             background-position: center;
         }
+
+        .floating-call {
+            position: fixed;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .call-text {
+            background-color: #343a40;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            margin-bottom: 6px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        .call-btn {
+            background-color: #007BFF;
+            border-radius: 50%;
+            width: 52px;
+            height: 52px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            text-decoration: none;
+            transition: transform 0.2s ease;
+        }
+
+        .call-btn:hover {
+            transform: scale(1.1);
+        }
     </style>
 </head>
 
 <body class="bg-gray-50">
+    <!-- Floating Call Button -->
+    <div class="floating-call">
+        <div class="call-text">Call Us</div>
+        <a href="tel:+919251999394" class="call-btn">
+            <i class="fa-solid fa-phone" style="color: #ffffff;"></i>
+        </a>
+    </div>
+
+
     <!-- Header -->
+
     <header class="bg-white shadow-md fixed w-full top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center py-4">
@@ -459,6 +506,8 @@
     </footer>
 
     <script>
+
+
         function toggleMenu() {
             const menu = document.getElementById('mobile-menu');
             menu.classList.toggle('hidden');
