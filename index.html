@@ -1,11 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Voice Audio Player</title>
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -23,7 +30,7 @@
       padding: 2rem 2.5rem;
       width: 100%;
       max-width: 440px;
-      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
       text-align: center;
     }
 
@@ -57,12 +64,29 @@
       transition: background 0.3s;
       flex-shrink: 0;
     }
-    .dot.listening { background: #e74c3c; animation: pulse 1.2s infinite; }
-    .dot.playing   { background: #1abc9c; animation: pulse 0.8s infinite; }
+
+    .dot.listening {
+      background: #e74c3c;
+      animation: pulse 1.2s infinite;
+    }
+
+    .dot.playing {
+      background: #1abc9c;
+      animation: pulse 0.8s infinite;
+    }
 
     @keyframes pulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50%       { opacity: 0.5; transform: scale(0.85); }
+
+      0%,
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+
+      50% {
+        opacity: 0.5;
+        transform: scale(0.85);
+      }
     }
 
     #statusText {
@@ -105,9 +129,19 @@
       transition: background 0.2s, transform 0.1s;
       margin-bottom: 1.75rem;
     }
-    #startBtn:hover:not(:disabled) { background: #2980b9; }
-    #startBtn:active:not(:disabled) { transform: scale(0.97); }
-    #startBtn:disabled { background: #bdc3c7; cursor: not-allowed; }
+
+    #startBtn:hover:not(:disabled) {
+      background: #2980b9;
+    }
+
+    #startBtn:active:not(:disabled) {
+      transform: scale(0.97);
+    }
+
+    #startBtn:disabled {
+      background: #bdc3c7;
+      cursor: not-allowed;
+    }
 
     /* Commands list */
     .commands-label {
@@ -143,203 +177,227 @@
     }
   </style>
 </head>
+
 <body>
 
-<div class="card">
-  <h1>🎤 Voice Audio Player</h1>
-  <p class="subtitle">Always listening — mic never stops</p>
+  <div class="card">
+    <h1>🎤 Voice Audio Player</h1>
+    <p class="subtitle">Always listening — mic never stops</p>
 
-  <div class="status-row">
-    <div class="dot" id="dot"></div>
-    <span id="statusText">Off</span>
+    <div class="status-row">
+      <div class="dot" id="dot"></div>
+      <span id="statusText">Off</span>
+    </div>
+
+    <div id="transcript">Say a keyword to play a sound...</div>
+    <div id="nowplaying"></div>
+
+    <button id="startBtn" onclick="initVoice()">Start Listening</button>
+
+    <div class="commands-label">Voice Commands</div>
+    <div class="commands">
+      <span class="cmd-badge">bkchodi</span>
+      <span class="cmd-badge">chicken</span>
+      <span class="cmd-badge">pakad lo</span>
+      <span class="cmd-badge">cid</span>
+      <span class="cmd-badge">cid mdc</span>
+      <span class="cmd-badge">cid tum</span>
+      <span class="cmd-badge">repta</span>
+      <span class="cmd-badge">jhatt</span>
+      <span class="cmd-badge">faaah</span>
+      <span class="cmd-badge">cheda</span>
+      <span class="cmd-badge">kyu re</span>
+      <span class="cmd-badge">bhojyam</span>
+      <span class="cmd-badge">wah modi</span>
+      <span class="cmd-badge">nikal jao</span>
+      <span class="cmd-badge">topper</span>
+      <span class="cmd-badge">ye le</span>
+    </div>
+
+    <p class="note">
+      Put your audio files in an <code>audio/</code> folder next to this file.<br>
+      Must run on localhost or HTTPS for mic to work.
+    </p>
   </div>
 
-  <div id="transcript">Say a keyword to play a sound...</div>
-  <div id="nowplaying"></div>
+  <audio id="audioPlayer"></audio>
 
-  <button id="startBtn" onclick="initVoice()">Start Listening</button>
-
-  <div class="commands-label">Voice Commands</div>
-  <div class="commands">
-    <span class="cmd-badge">dj</span>
-    <span class="cmd-badge">lakhan</span>
-    <span class="cmd-badge">fat gaya</span>
-    <span class="cmd-badge">achcha</span>
-    <span class="cmd-badge">bjp</span>
-  </div>
-
-  <p class="note">
-    Put your audio files in an <code>audio/</code> folder next to this file.<br>
-    Must run on localhost or HTTPS for mic to work.
-  </p>
-</div>
-
-<audio id="audioPlayer"></audio>
-
-<script>
-  /* ── Audio commands map ─────────────────────────────────────── */
-  const commands = {
-    "aniket"       : "./chicken-on-tree-screaming.mp3",
-    "lakhan"   : "./modi-ji-bhojyam.mp3",
-    "dilkhush" : "./kya-cheda-bhosdi.mp3",
-    "achcha"   : "./kyu-re-madarchod-cid.mp3",
-    "sir"      : "./modi-ji-wah.mp3"
-  };
-  const defaultAudio = "audio/faaah.mp3";
-
-  /* ── DOM refs ────────────────────────────────────────────────── */
-  const dot        = document.getElementById("dot");
-  const statusText = document.getElementById("statusText");
-  const transcript = document.getElementById("transcript");
-  const nowplaying = document.getElementById("nowplaying");
-  const startBtn   = document.getElementById("startBtn");
-  const player     = document.getElementById("audioPlayer");
-
-  /* ── State ───────────────────────────────────────────────────── */
-  let recognition   = null;
-  let isPlaying     = false;
-  let started       = false;
-  let restartTimer  = null;
-
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-
-  /* ── UI helpers ──────────────────────────────────────────────── */
-  function setListening() {
-    dot.className       = "dot listening";
-    statusText.textContent = "Listening...";
-    statusText.style.color = "#e74c3c";
-    nowplaying.textContent = "";
-  }
-
-  function setPlaying(label) {
-    dot.className       = "dot playing";
-    statusText.textContent = "Playing audio";
-    statusText.style.color = "#1abc9c";
-    nowplaying.textContent = label ? "▶ " + label : "▶ default";
-  }
-
-  function setIdle(msg) {
-    dot.className       = "dot";
-    statusText.textContent = msg || "Idle";
-    statusText.style.color = "#555";
-  }
-
-  /* ── Safe restart ────────────────────────────────────────────── */
-  function safeStart() {
-    if (!recognition || isPlaying) return;
-    clearTimeout(restartTimer);
-    try { recognition.start(); } catch(e) { /* already running */ }
-  }
-
-  /* ── Build recognition object ────────────────────────────────── */
-  function setupRecognition() {
-    if (!SR) return;
-    recognition = new SR();
-    recognition.lang            = "en-US";
-    recognition.continuous      = false;   // restart manually = more reliable
-    recognition.interimResults  = false;
-    recognition.maxAlternatives = 3;       // check up to 3 guesses per utterance
-
-    recognition.onstart = () => {
-      if (!isPlaying) setListening();
+  <script>
+    /* ── Audio commands map ─────────────────────────────────────── */
+    const commands = {
+      "bkchodi": "audio/bkchodi-mt-kar-cid.mp3",
+      "chicken": "audio/chicken-on-tree-screaming.mp3",
+      "pakad lo": "audio/chodu-cid-pakad-le.mp3",
+      "cid": "audio/cid.mp3",
+      "cid mdc": "audio/cid-le-mdc.mp3",
+      "cid tum": "audio/cid-tum-bkl-f.mp3",
+      "repta": "audio/ek-gand-pe-repta-mara-n-sarak-pe-hagta-firega.mp3",
+      "jhatt": "audio/ek-jhaat-bhar-ka-aadmi.mp3",
+      "faaah": "audio/faaah.mp3",
+      "cheda": "audio/kya-cheda-bhosdi.mp3",
+      "kyu re": "audio/kyu-re-madarchod-cid.mp3",
+      "bhojyam": "audio/modi-ji-bhojyam.mp3",
+      "wah modi": "audio/modi-ji-wah.mp3",
+      "nikal jao": "audio/nikal-jao-mere-lo-e-ke-samne-se_y19lYpE.mp3",
+      "topper": "audio/topper-sumit_urPWSIj.mp3",
+      "ye le": "audio/ye-le-la-e.mp3"
     };
+    const defaultAudio = "audio/faaah.mp3";
 
-    recognition.onresult = (event) => {
-      /* Check all alternatives for any matching keyword */
-      for (let alt = 0; alt < event.results[0].length; alt++) {
-        const text = event.results[0][alt].transcript.trim().toLowerCase();
+    /* ── DOM refs ────────────────────────────────────────────────── */
+    const dot = document.getElementById("dot");
+    const statusText = document.getElementById("statusText");
+    const transcript = document.getElementById("transcript");
+    const nowplaying = document.getElementById("nowplaying");
+    const startBtn = document.getElementById("startBtn");
+    const player = document.getElementById("audioPlayer");
 
-        for (let key in commands) {
-          if (text.includes(key)) {
-            transcript.textContent = `You said: "${text}"`;
-            playAudio(commands[key], key);
-            return;
-          }
-        }
-      }
+    /* ── State ───────────────────────────────────────────────────── */
+    let recognition = null;
+    let isPlaying = false;
+    let started = false;
+    let restartTimer = null;
 
-      /* No match across all alternatives — play default */
-      const heard = event.results[0][0].transcript.trim();
-      transcript.textContent = `You said: "${heard}" — no match`;
-      playAudio(defaultAudio, null);
-    };
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 
-    recognition.onerror = (event) => {
-      /* Silently restart on non-fatal errors */
-      if (event.error === "no-speech" || event.error === "aborted") {
-        if (!isPlaying) restartTimer = setTimeout(safeStart, 100);
-        return;
-      }
-      if (event.error === "not-allowed") {
-        setIdle("Microphone access denied");
-        return;
-      }
-      /* Any other error — retry after short delay */
-      if (!isPlaying) restartTimer = setTimeout(safeStart, 400);
-    };
-
-    recognition.onend = () => {
-      /* This fires after every recognition cycle — restart immediately */
-      if (!isPlaying) restartTimer = setTimeout(safeStart, 80);
-    };
-  }
-
-  /* ── Play audio ──────────────────────────────────────────────── */
-  function playAudio(src, label) {
-    isPlaying = true;
-    clearTimeout(restartTimer);
-    try { recognition.stop(); } catch(e) {}
-
-    setPlaying(label);
-    player.src = src;
-    player.play().catch(() => {
-      isPlaying = false;
-      setIdle("Audio error — resuming mic");
-      restartTimer = setTimeout(safeStart, 500);
-    });
-  }
-
-  /* Restart mic the moment audio finishes */
-  player.onended = () => {
-    isPlaying = false;
-    setListening();
-    restartTimer = setTimeout(safeStart, 150);
-  };
-
-  player.onerror = () => {
-    isPlaying = false;
-    setIdle("File not found — resuming mic");
-    restartTimer = setTimeout(safeStart, 500);
-  };
-
-  /* ── Init (triggered by button click) ───────────────────────── */
-  function initVoice() {
-    if (!SR) {
-      alert("Web Speech API is not supported in this browser.\nTry Chrome or Edge.");
-      return;
+    /* ── UI helpers ──────────────────────────────────────────────── */
+    function setListening() {
+      dot.className = "dot listening";
+      statusText.textContent = "Listening...";
+      statusText.style.color = "#e74c3c";
+      nowplaying.textContent = "";
     }
 
-    startBtn.disabled    = true;
-    startBtn.textContent = "Mic active";
+    function setPlaying(label) {
+      dot.className = "dot playing";
+      statusText.textContent = "Playing audio";
+      statusText.style.color = "#1abc9c";
+      nowplaying.textContent = label ? "▶ " + label : "▶ default";
+    }
 
-    navigator.mediaDevices.getUserMedia({ audio: true })
-      .then(stream => {
-        /* Release the temporary stream — SpeechRecognition manages its own */
-        stream.getTracks().forEach(t => t.stop());
+    function setIdle(msg) {
+      dot.className = "dot";
+      statusText.textContent = msg || "Idle";
+      statusText.style.color = "#555";
+    }
 
-        if (!started) {
-          setupRecognition();
-          started = true;
+    /* ── Safe restart ────────────────────────────────────────────── */
+    function safeStart() {
+      if (!recognition || isPlaying) return;
+      clearTimeout(restartTimer);
+      try { recognition.start(); } catch (e) { /* already running */ }
+    }
+
+    /* ── Build recognition object ────────────────────────────────── */
+    function setupRecognition() {
+      if (!SR) return;
+      recognition = new SR();
+      recognition.lang = "en-US";
+      recognition.continuous = false;   // restart manually = more reliable
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 3;       // check up to 3 guesses per utterance
+
+      recognition.onstart = () => {
+        if (!isPlaying) setListening();
+      };
+
+      recognition.onresult = (event) => {
+        /* Check all alternatives for any matching keyword */
+        for (let alt = 0; alt < event.results[0].length; alt++) {
+          const text = event.results[0][alt].transcript.trim().toLowerCase();
+
+          for (let key in commands) {
+            if (text.includes(key)) {
+              transcript.textContent = `You said: "${text}"`;
+              playAudio(commands[key], key);
+              return;
+            }
+          }
         }
-        safeStart();
-      })
-      .catch(() => {
-        setIdle("Microphone access denied");
-        startBtn.disabled    = false;
-        startBtn.textContent = "Start Listening";
+
+        /* No match across all alternatives — play default */
+        const heard = event.results[0][0].transcript.trim();
+        transcript.textContent = `You said: "${heard}" — no match`;
+        playAudio(defaultAudio, null);
+      };
+
+      recognition.onerror = (event) => {
+        /* Silently restart on non-fatal errors */
+        if (event.error === "no-speech" || event.error === "aborted") {
+          if (!isPlaying) restartTimer = setTimeout(safeStart, 100);
+          return;
+        }
+        if (event.error === "not-allowed") {
+          setIdle("Microphone access denied");
+          return;
+        }
+        /* Any other error — retry after short delay */
+        if (!isPlaying) restartTimer = setTimeout(safeStart, 400);
+      };
+
+      recognition.onend = () => {
+        /* This fires after every recognition cycle — restart immediately */
+        if (!isPlaying) restartTimer = setTimeout(safeStart, 80);
+      };
+    }
+
+    /* ── Play audio ──────────────────────────────────────────────── */
+    function playAudio(src, label) {
+      isPlaying = true;
+      clearTimeout(restartTimer);
+      try { recognition.stop(); } catch (e) { }
+
+      setPlaying(label);
+      player.src = src;
+      player.play().catch(() => {
+        isPlaying = false;
+        setIdle("Audio error — resuming mic");
+        restartTimer = setTimeout(safeStart, 500);
       });
-  }
-</script>
+    }
+
+    /* Restart mic the moment audio finishes */
+    player.onended = () => {
+      isPlaying = false;
+      setListening();
+      restartTimer = setTimeout(safeStart, 150);
+    };
+
+    player.onerror = () => {
+      isPlaying = false;
+      setIdle("File not found — resuming mic");
+      restartTimer = setTimeout(safeStart, 500);
+    };
+
+    /* ── Init (triggered by button click) ───────────────────────── */
+    function initVoice() {
+      if (!SR) {
+        alert("Web Speech API is not supported in this browser.\nTry Chrome or Edge.");
+        return;
+      }
+
+      startBtn.disabled = true;
+      startBtn.textContent = "Mic active";
+
+      navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(stream => {
+          /* Release the temporary stream — SpeechRecognition manages its own */
+          stream.getTracks().forEach(t => t.stop());
+
+          if (!started) {
+            setupRecognition();
+            started = true;
+          }
+          safeStart();
+        })
+        .catch(() => {
+          setIdle("Microphone access denied");
+          startBtn.disabled = false;
+          startBtn.textContent = "Start Listening";
+        });
+    }
+  </script>
 
 </body>
+
 </html>
