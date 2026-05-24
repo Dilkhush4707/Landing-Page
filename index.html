@@ -1,403 +1,678 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Voice Audio Player</title>
-  <style>
-    *,
-    *::before,
-    *::after {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #f0f2f5;
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 2rem;
-    }
-
-    .card {
-      background: #ffffff;
-      border-radius: 16px;
-      padding: 2rem 2.5rem;
-      width: 100%;
-      max-width: 440px;
-      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
-      text-align: center;
-    }
-
-    h1 {
-      font-size: 20px;
-      font-weight: 600;
-      color: #1a1a2e;
-      margin-bottom: 4px;
-    }
-
-    .subtitle {
-      font-size: 13px;
-      color: #888;
-      margin-bottom: 1.75rem;
-    }
-
-    /* Status row */
-    .status-row {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      margin-bottom: 1.25rem;
-    }
-
-    .dot {
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-      background: #ccc;
-      transition: background 0.3s;
-      flex-shrink: 0;
-    }
-
-    .dot.listening {
-      background: #e74c3c;
-      animation: pulse 1.2s infinite;
-    }
-
-    .dot.playing {
-      background: #1abc9c;
-      animation: pulse 0.8s infinite;
-    }
-
-    @keyframes pulse {
-
-      0%,
-      100% {
-        opacity: 1;
-        transform: scale(1);
-      }
-
-      50% {
-        opacity: 0.5;
-        transform: scale(0.85);
-      }
-    }
-
-    #statusText {
-      font-size: 14px;
-      font-weight: 600;
-      color: #555;
-    }
-
-    /* Transcript box */
-    #transcript {
-      background: #f7f8fa;
-      border: 1px solid #e8e8e8;
-      border-radius: 10px;
-      padding: 0.6rem 1rem;
-      font-size: 14px;
-      color: #333;
-      min-height: 40px;
-      margin-bottom: 0.5rem;
-      font-style: italic;
-    }
-
-    #nowplaying {
-      font-size: 12px;
-      font-weight: 600;
-      color: #1abc9c;
-      min-height: 18px;
-      margin-bottom: 1.25rem;
-    }
-
-    /* Start button */
-    #startBtn {
-      background: #3498db;
-      color: #fff;
-      border: none;
-      padding: 11px 32px;
-      font-size: 15px;
-      font-weight: 600;
-      border-radius: 30px;
-      cursor: pointer;
-      transition: background 0.2s, transform 0.1s;
-      margin-bottom: 1.75rem;
-    }
-
-    #startBtn:hover:not(:disabled) {
-      background: #2980b9;
-    }
-
-    #startBtn:active:not(:disabled) {
-      transform: scale(0.97);
-    }
-
-    #startBtn:disabled {
-      background: #bdc3c7;
-      cursor: not-allowed;
-    }
-
-    /* Commands list */
-    .commands-label {
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: #aaa;
-      margin-bottom: 0.6rem;
-    }
-
-    .commands {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      justify-content: center;
-    }
-
-    .cmd-badge {
-      font-size: 12px;
-      padding: 4px 12px;
-      border-radius: 20px;
-      background: #eef2ff;
-      color: #3d5af1;
-      font-weight: 500;
-      border: 1px solid #d8dfff;
-    }
-
-    .note {
-      margin-top: 1.5rem;
-      font-size: 11px;
-      color: #bbb;
-      line-height: 1.5;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CareerFlow Advanced</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:#060810;font-family:'Plus Jakarta Sans',sans-serif;color:#dde4f5}
+:root{
+  --bg:#060810;--node:#0d1120;--border:#1c2440;--border2:#232d4a;
+  --text:#dde4f5;--muted:#3a4a70;--muted2:#5a6e96;--muted3:#8898bb;
+  --corp:#3b82f6;--corp-d:rgba(59,130,246,.1);--corp-g:rgba(59,130,246,.28);
+  --gov:#10b981;--gov-d:rgba(16,185,129,.1);--gov-g:rgba(16,185,129,.28);
+  --free:#f59e0b;--free-d:rgba(245,158,11,.1);--free-g:rgba(245,158,11,.28);
+  --part:#a855f7;--part-d:rgba(168,85,247,.1);--part-g:rgba(168,85,247,.28);
+  --trig:#ff5f40;--hot:#ff4757;--green:#22c55e;
+}
+/* TOPBAR */
+.topbar{position:fixed;top:0;left:0;right:0;z-index:300;height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;background:rgba(6,8,16,.97);border-bottom:1px solid var(--border);backdrop-filter:blur(20px)}
+.brand{display:flex;align-items:center;gap:10px}
+.bmark{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--trig),#ff9f43);display:flex;align-items:center;justify-content:center;font-size:1rem}
+.bname{font-size:.95rem;font-weight:800;letter-spacing:-.4px}
+.bname em{color:var(--trig);font-style:normal}
+.bsep{width:1px;height:18px;background:var(--border);margin:0 12px}
+.bpath{font-family:'JetBrains Mono',monospace;font-size:.62rem;color:var(--muted2)}
+.class-switch{display:flex;gap:3px;background:var(--node);border:1px solid var(--border);border-radius:11px;padding:3px}
+.csw{padding:5px 18px;border-radius:8px;font-size:.8rem;font-weight:700;cursor:pointer;border:none;background:transparent;color:var(--muted2);transition:all .22s;font-family:'Plus Jakarta Sans',sans-serif;letter-spacing:-.2px}
+.csw.on{background:linear-gradient(135deg,var(--trig),#ff9f43);color:#fff;box-shadow:0 2px 14px rgba(255,95,64,.4)}
+.tbar-r{display:flex;align-items:center;gap:8px}
+.zgroup{display:flex;background:var(--node);border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.zbtn{width:28px;height:28px;border:none;background:transparent;color:var(--muted2);cursor:pointer;font-size:.85rem;display:flex;align-items:center;justify-content:center;transition:all .15s;font-family:'JetBrains Mono',monospace;font-weight:600}
+.zbtn:hover{background:var(--border2);color:var(--text)}
+.zdiv{width:1px;background:var(--border);align-self:stretch}
+.zlbl{padding:0 10px;font-family:'JetBrains Mono',monospace;font-size:.65rem;color:var(--muted2);display:flex;align-items:center;border-left:1px solid var(--border)}
+.run-btn{display:flex;align-items:center;gap:6px;padding:6px 16px;border-radius:8px;border:none;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;font-size:.8rem;font-weight:700;transition:all .2s;background:linear-gradient(135deg,var(--corp),#60a5fa);color:#fff}
+.run-btn:hover{transform:translateY(-1px);box-shadow:0 4px 18px rgba(59,130,246,.45)}
+/* CANVAS */
+#canvas{position:fixed;top:54px;left:0;right:0;bottom:28px;overflow:hidden;cursor:grab;background-color:#060810;background-image:radial-gradient(circle,#14192e 1px,transparent 1px);background-size:26px 26px}
+#canvas.gbn{cursor:grabbing}
+#world{position:absolute;transform-origin:0 0;will-change:transform}
+#svgl{position:absolute;top:0;left:0;pointer-events:none;overflow:visible}
+/* PATHS */
+.lb{fill:none;stroke-width:2;opacity:.09}
+.lb.corp{stroke:var(--corp)}.lb.gov{stroke:var(--gov)}.lb.free{stroke:var(--free)}.lb.part{stroke:var(--part)}
+.lp{fill:none;stroke-width:2.2;stroke-linecap:round;stroke-dasharray:8 5;animation:dash .8s linear infinite}
+.lp.corp{stroke:var(--corp);opacity:.75}.lp.gov{stroke:var(--gov);opacity:.75}.lp.free{stroke:var(--free);opacity:.75}.lp.part{stroke:var(--part);opacity:.75}
+.lp.dim{opacity:.1!important}.lp.lit{opacity:1!important;stroke-width:2.8}
+@keyframes dash{from{stroke-dashoffset:26}to{stroke-dashoffset:0}}
+/* NODE */
+.node{position:absolute;border-radius:13px;background:var(--node);border:1.5px solid var(--border2);cursor:pointer;user-select:none;transition:border-color .25s,box-shadow .25s,transform .2s}
+.node:hover{transform:translateY(-2px)}
+.port{position:absolute;left:50%;transform:translateX(-50%);width:12px;height:12px;border-radius:50%;border:2px solid var(--border2);background:var(--node)}
+.port.top{top:-6px}.port.bot{bottom:-6px}
+.port.corp{border-color:var(--corp);background:rgba(59,130,246,.2)}.port.gov{border-color:var(--gov);background:rgba(16,185,129,.2)}.port.free{border-color:var(--free);background:rgba(245,158,11,.2)}.port.part{border-color:var(--part);background:rgba(168,85,247,.2)}.port.trig{border-color:var(--trig);background:rgba(255,95,64,.2)}
+/* TRIGGER */
+.tnode{width:270px}
+.tnode-head{padding:16px 18px;border-radius:11px 11px 0 0;background:linear-gradient(135deg,rgba(255,95,64,.14),rgba(255,159,67,.06));border-bottom:1px solid rgba(255,95,64,.2);display:flex;align-items:center;gap:12px}
+.tnode-ico{width:38px;height:38px;border-radius:9px;background:linear-gradient(135deg,var(--trig),#ff9f43);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;box-shadow:0 4px 14px rgba(255,95,64,.4)}
+.tnode-tag{font-size:.6rem;font-weight:700;color:var(--trig);letter-spacing:2px;text-transform:uppercase;margin-bottom:3px}
+.tnode-cls{font-size:1.3rem;font-weight:800;letter-spacing:-.5px;background:linear-gradient(135deg,var(--trig),#ffa040);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.tnode-body{padding:14px 18px}
+.tnode-desc{font-size:.71rem;color:var(--muted3);line-height:1.55}
+.tnode-pills{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+.tpill{font-size:.62rem;padding:3px 9px;border-radius:7px;font-weight:600;background:rgba(255,95,64,.1);color:var(--trig);font-family:'JetBrains Mono',monospace}
+/* CATEGORY NODE */
+.cnode{width:218px}
+.cnode-head{padding:12px 15px;border-radius:11px 11px 0 0;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border)}
+.cnode-ico{width:33px;height:33px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0}
+.cnode-nm{font-size:.86rem;font-weight:800;flex:1;letter-spacing:-.2px}
+.cnode-cnt{font-size:.58rem;font-family:'JetBrains Mono',monospace;padding:2px 7px;border-radius:6px;font-weight:600}
+.cnode-body{padding:11px 15px}
+.cnode-desc{font-size:.7rem;color:var(--muted2);line-height:1.45}
+.cnode-chips{display:flex;gap:4px;margin-top:8px;flex-wrap:wrap}
+.chip{font-size:.58rem;padding:2px 7px;border-radius:6px;font-weight:600}
+.cnode-pay{margin-top:10px;padding:8px 10px;border-radius:8px;display:flex;align-items:center;justify-content:space-between;border:1px solid var(--border)}
+.pay-lbl{font-size:.6rem;color:var(--muted2)}.pay-val{font-family:'JetBrains Mono',monospace;font-size:.74rem;font-weight:700}
+.cnode.open{transform:translateY(-2px)}
+.cnode.corp.open{border-color:var(--corp);box-shadow:0 0 30px var(--corp-g)}
+.cnode.gov.open{border-color:var(--gov);box-shadow:0 0 30px var(--gov-g)}
+.cnode.free.open{border-color:var(--free);box-shadow:0 0 30px var(--free-g)}
+.cnode.part.open{border-color:var(--part);box-shadow:0 0 30px var(--part-g)}
+.corp .cnode-head{background:var(--corp-d)}.corp .cnode-ico{background:rgba(59,130,246,.18)}.corp .cnode-nm{color:var(--corp)}.corp .cnode-cnt{background:var(--corp-d);color:var(--corp)}.corp .chip{background:var(--corp-d);color:var(--corp)}.corp .pay-val{color:var(--corp)}.corp .cnode-pay{background:var(--corp-d);border-color:rgba(59,130,246,.2)}
+.gov .cnode-head{background:var(--gov-d)}.gov .cnode-ico{background:rgba(16,185,129,.18)}.gov .cnode-nm{color:var(--gov)}.gov .cnode-cnt{background:var(--gov-d);color:var(--gov)}.gov .chip{background:var(--gov-d);color:var(--gov)}.gov .pay-val{color:var(--gov)}.gov .cnode-pay{background:var(--gov-d);border-color:rgba(16,185,129,.2)}
+.free .cnode-head{background:var(--free-d)}.free .cnode-ico{background:rgba(245,158,11,.18)}.free .cnode-nm{color:var(--free)}.free .cnode-cnt{background:var(--free-d);color:var(--free)}.free .chip{background:var(--free-d);color:var(--free)}.free .pay-val{color:var(--free)}.free .cnode-pay{background:var(--free-d);border-color:rgba(245,158,11,.2)}
+.part .cnode-head{background:var(--part-d)}.part .cnode-ico{background:rgba(168,85,247,.18)}.part .cnode-nm{color:var(--part)}.part .cnode-cnt{background:var(--part-d);color:var(--part)}.part .chip{background:var(--part-d);color:var(--part)}.part .pay-val{color:var(--part)}.part .cnode-pay{background:var(--part-d);border-color:rgba(168,85,247,.2)}
+/* PANEL */
+.jpanel{position:absolute;width:310px;background:var(--node);border:1.5px solid var(--border2);border-radius:13px;opacity:0;transform:translateY(-12px) scale(.97);pointer-events:none;transition:opacity .3s cubic-bezier(.34,1.5,.64,1),transform .3s cubic-bezier(.34,1.5,.64,1)}
+.jpanel.show{opacity:1;transform:translateY(0) scale(1);pointer-events:all}
+.jpanel.corp.show{border-color:rgba(59,130,246,.4);box-shadow:0 10px 40px rgba(59,130,246,.14)}
+.jpanel.gov.show{border-color:rgba(16,185,129,.4);box-shadow:0 10px 40px rgba(16,185,129,.14)}
+.jpanel.free.show{border-color:rgba(245,158,11,.4);box-shadow:0 10px 40px rgba(245,158,11,.14)}
+.jpanel.part.show{border-color:rgba(168,85,247,.4);box-shadow:0 10px 40px rgba(168,85,247,.14)}
+.jpanel-head{padding:11px 15px;border-radius:11px 11px 0 0;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.jpanel.corp .jpanel-head{background:var(--corp-d)}.jpanel.gov .jpanel-head{background:var(--gov-d)}.jpanel.free .jpanel-head{background:var(--free-d)}.jpanel.part .jpanel-head{background:var(--part-d)}
+.jph-t{font-size:.76rem;font-weight:800}
+.jpanel.corp .jph-t{color:var(--corp)}.jpanel.gov .jph-t{color:var(--gov)}.jpanel.free .jph-t{color:var(--free)}.jpanel.part .jph-t{color:var(--part)}
+.jph-close{width:22px;height:22px;border-radius:5px;border:none;cursor:pointer;background:var(--border2);color:var(--muted2);font-size:.7rem;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.jph-close:hover{background:var(--border);color:var(--text)}
+.jlist{padding:10px;max-height:520px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+/* JOB CARD */
+.jcard{padding:13px;border-radius:10px;background:rgba(255,255,255,.015);border:1px solid var(--border);margin-bottom:9px;transition:all .18s}
+.jcard:last-child{margin-bottom:0}
+.jcard-top{display:flex;align-items:flex-start;gap:10px;margin-bottom:8px}
+.jcard-emo{font-size:1.4rem;min-width:24px;line-height:1.1}
+.jcard-nm{font-size:.8rem;font-weight:700;line-height:1.3;display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.jcard-org{font-size:.64rem;color:var(--muted2);margin-top:2px}
+.hot{font-size:.54rem;padding:1px 6px;border-radius:5px;font-weight:700;background:rgba(255,71,87,.18);color:var(--hot)}
+.rise{font-size:.54rem;padding:1px 6px;border-radius:5px;font-weight:700;background:rgba(34,197,94,.15);color:var(--green)}
+/* PROGRESSION */
+.jcard-prog{margin:8px 0;display:flex;align-items:flex-start;gap:0}
+.prog-step{text-align:center;flex:1;position:relative}
+.prog-step:not(:last-child)::after{content:'';position:absolute;top:9px;left:55%;width:90%;height:1.5px;background:linear-gradient(90deg,var(--step-c,#3b82f6),transparent)}
+.prog-dot{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.55rem;font-weight:700;margin:0 auto 3px;border:1.5px solid var(--step-c,#3b82f6);color:var(--step-c,#3b82f6);background:rgba(0,0,0,.4)}
+.prog-lbl{font-size:.52rem;color:var(--muted2);white-space:nowrap}
+.prog-sal{font-size:.56rem;font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--step-c,#3b82f6);margin-top:1px}
+/* HOW TO BECOME */
+.become-section{margin-top:8px;padding:8px 10px;border-radius:8px;background:rgba(255,255,255,.02);border:1px solid var(--border)}
+.become-title{font-size:.6rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted3);margin-bottom:6px}
+.bstep{display:flex;align-items:flex-start;gap:7px;font-size:.66rem;color:var(--muted2);line-height:1.4;margin-bottom:5px}
+.bstep:last-child{margin-bottom:0}
+.bstep-num{min-width:16px;height:16px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:.55rem;font-weight:800;flex-shrink:0;margin-top:1px}
+.corp-s .bstep-num{background:rgba(59,130,246,.2);color:var(--corp)}
+.gov-s .bstep-num{background:rgba(16,185,129,.2);color:var(--gov)}
+.free-s .bstep-num{background:rgba(245,158,11,.2);color:var(--free)}
+.part-s .bstep-num{background:rgba(168,85,247,.2);color:var(--part)}
+/* CHIPS */
+.jcard-bot{display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-top:8px}
+.jchip{font-size:.58rem;padding:2px 7px;border-radius:6px;font-weight:500}
+.jsal{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:.72rem;font-weight:800;white-space:nowrap}
+.corp .jchip,.corp-s .jchip{background:var(--corp-d);color:var(--corp)}.corp .jsal,.corp-s .jsal{color:var(--corp)}
+.gov .jchip,.gov-s .jchip{background:var(--gov-d);color:var(--gov)}.gov .jsal,.gov-s .jsal{color:var(--gov)}
+.free .jchip,.free-s .jchip{background:var(--free-d);color:var(--free)}.free .jsal,.free-s .jsal{color:var(--free)}
+.part .jchip,.part-s .jchip{background:var(--part-d);color:var(--part)}.part .jsal,.part-s .jsal{color:var(--part)}
+.corp .jcard:hover{border-color:rgba(59,130,246,.5);background:rgba(59,130,246,.04)}
+.gov .jcard:hover{border-color:rgba(16,185,129,.5);background:rgba(16,185,129,.04)}
+.free .jcard:hover{border-color:rgba(245,158,11,.5);background:rgba(245,158,11,.04)}
+.part .jcard:hover{border-color:rgba(168,85,247,.5);background:rgba(168,85,247,.04)}
+/* STATUS */
+.sbar{position:fixed;bottom:0;left:0;right:0;height:28px;z-index:300;background:rgba(6,8,16,.96);border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 18px;backdrop-filter:blur(12px)}
+.sb-l,.sb-r{display:flex;align-items:center;gap:14px;font-size:.63rem;font-family:'JetBrains Mono',monospace;color:var(--muted2)}
+.sd{width:5px;height:5px;border-radius:50%;background:var(--gov);animation:pulse 2s infinite;margin-right:3px}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.sa{display:flex;align-items:center}
+@keyframes rise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+.node,.jpanel{animation:rise .4s cubic-bezier(.34,1.4,.64,1) both}
+</style>
 </head>
-
 <body>
-
-  <div class="card">
-    <h1>🎤 Voice Audio Player</h1>
-    <p class="subtitle">Always listening — mic never stops</p>
-
-    <div class="status-row">
-      <div class="dot" id="dot"></div>
-      <span id="statusText">Off</span>
-    </div>
-
-    <div id="transcript">Say a keyword to play a sound...</div>
-    <div id="nowplaying"></div>
-
-    <button id="startBtn" onclick="initVoice()">Start Listening</button>
-
-    <div class="commands-label">Voice Commands</div>
-    <div class="commands">
-      <span class="cmd-badge">chacha</span>
-      <span class="cmd-badge">aa</span>
-      <span class="cmd-badge">pakad lo</span>
-      <span class="cmd-badge">cid</span>
-      <span class="cmd-badge">cid mdc</span>
-      <span class="cmd-badge">cid tum</span>
-      <span class="cmd-badge">repta</span>
-      <span class="cmd-badge">yash</span>
-      <span class="cmd-badge">faaah</span>
-      <span class="cmd-badge">cheda</span>
-      <span class="cmd-badge">kyu re</span>
-      <span class="cmd-badge">bhojyam</span>
-      <span class="cmd-badge">wah modi</span>
-      <span class="cmd-badge">nikal jao</span>
-      <span class="cmd-badge">topper</span>
-      <span class="cmd-badge">ye le</span>
-    </div>
-
-    <p class="note">
-      Put your audio files in an <code>audio/</code> folder next to this file.<br>
-      Must run on localhost or HTTPS for mic to work.
-    </p>
+<header class="topbar">
+  <div class="brand">
+    <div class="bmark">🚀</div>
+    <span class="bname">Career<em>Flow</em></span>
+    <div class="bsep"></div>
+    <span class="bpath">student / advanced / earn-more</span>
   </div>
+  <div class="class-switch">
+    <button class="csw on" id="b10" onclick="setC(10)">Class 10th</button>
+    <button class="csw" id="b12" onclick="setC(12)">Class 12th</button>
+    <button class="csw" id="bg" onclick="setC('g')">Graduate 🎓</button>
+  </div>
+  <div class="tbar-r">
+    <div class="zgroup">
+      <button class="zbtn" onclick="zm(-.12)">−</button>
+      <div class="zdiv"></div>
+      <button class="zbtn" onclick="zm(.12)">+</button>
+      <div class="zdiv"></div>
+      <button class="zbtn" onclick="resetV()">⊡</button>
+      <div class="zlbl" id="zlbl">85%</div>
+    </div>
+    <button class="run-btn" onclick="runAll()">▶ Explore All</button>
+  </div>
+</header>
 
-  <audio id="audioPlayer"></audio>
+<div id="canvas">
+  <div id="world">
+    <svg id="svgl" width="6000" height="5000"></svg>
+    <!-- TRIGGER -->
+    <div class="node tnode" id="trig" style="left:630px;top:55px">
+      <div class="tnode-head">
+        <div class="tnode-ico">⚡</div>
+        <div>
+          <div class="tnode-tag">Career Trigger</div>
+          <div class="tnode-cls" id="cls-lbl">Class 10th</div>
+        </div>
+      </div>
+      <div class="tnode-body">
+        <div class="tnode-desc" id="cls-desc">Start your journey. Each card shows exact steps to become, how to grow, and how to earn more — up to ₹Crores.</div>
+        <div class="tnode-pills">
+          <span class="tpill" id="tp1">4 Tracks</span>
+          <span class="tpill" id="tp2">30+ Roles</span>
+          <span class="tpill" id="tp3">Up to ₹3L+/mo</span>
+        </div>
+      </div>
+      <div class="port bot trig"></div>
+    </div>
+    <!-- CATEGORY NODES -->
+    <div class="node cnode corp" id="nc-corp" style="left:100px;top:290px" onclick="tog('corp')">
+      <div class="port top corp"></div>
+      <div class="cnode-head"><div class="cnode-ico">🏢</div><div class="cnode-nm">Corporate</div><div class="cnode-cnt" id="cc-corp">6 roles</div></div>
+      <div class="cnode-body">
+        <div class="cnode-desc">Salaried jobs with bonuses, promotions & structured career ladder</div>
+        <div class="cnode-chips"><span class="chip">Salary+Bonus</span><span class="chip">Promotions</span><span class="chip">Benefits</span></div>
+        <div class="cnode-pay"><span class="pay-lbl">Fresher → Expert</span><span class="pay-val" id="cv-corp">₹18k → ₹3L+</span></div>
+      </div>
+      <div class="port bot corp"></div>
+    </div>
+    <div class="node cnode gov" id="nc-gov" style="left:390px;top:290px" onclick="tog('gov')">
+      <div class="port top gov"></div>
+      <div class="cnode-head"><div class="cnode-ico">🏛️</div><div class="cnode-nm">Government</div><div class="cnode-cnt" id="cc-gov">5 roles</div></div>
+      <div class="cnode-body">
+        <div class="cnode-desc">Stable public sector — pension, DA hikes, housing & job security</div>
+        <div class="cnode-chips"><span class="chip">Pension</span><span class="chip">Job Security</span><span class="chip">DA+HRA</span></div>
+        <div class="cnode-pay"><span class="pay-lbl">Fresher → Senior</span><span class="pay-val" id="cv-gov">₹18k → ₹1.5L+</span></div>
+      </div>
+      <div class="port bot gov"></div>
+    </div>
+    <div class="node cnode free" id="nc-free" style="left:680px;top:290px" onclick="tog('free')">
+      <div class="port top free"></div>
+      <div class="cnode-head"><div class="cnode-ico">💻</div><div class="cnode-nm">Freelance</div><div class="cnode-cnt" id="cc-free">5 roles</div></div>
+      <div class="cnode-body">
+        <div class="cnode-desc">Skill = income. Global clients, work remotely, no income ceiling</div>
+        <div class="cnode-chips"><span class="chip">Unlimited $</span><span class="chip">Remote</span><span class="chip">Skills=Income</span></div>
+        <div class="cnode-pay"><span class="pay-lbl">Starter → Expert</span><span class="pay-val" id="cv-free">₹15k → ₹5L+</span></div>
+      </div>
+      <div class="port bot free"></div>
+    </div>
+    <div class="node cnode part" id="nc-part" style="left:970px;top:290px" onclick="tog('part')">
+      <div class="port top part"></div>
+      <div class="cnode-head"><div class="cnode-ico">⏰</div><div class="cnode-nm">Part-time</div><div class="cnode-cnt" id="cc-part">4 roles</div></div>
+      <div class="cnode-body">
+        <div class="cnode-desc">Earn while studying — flexible, scalable, some become full businesses</div>
+        <div class="cnode-chips"><span class="chip">Flexible Hours</span><span class="chip">Side Income</span><span class="chip">Scale Up</span></div>
+        <div class="cnode-pay"><span class="pay-lbl">Gig → Business</span><span class="pay-val" id="cv-part">₹5k → ₹1.5L+</span></div>
+      </div>
+      <div class="port bot part"></div>
+    </div>
+    <!-- PANELS -->
+    <div class="jpanel corp" id="jp-corp" style="left:20px;top:570px">
+      <div class="jpanel-head"><div class="jph-t">🏢 Corporate Paths</div><button class="jph-close" onclick="tog('corp')">✕</button></div>
+      <div class="jlist corp corp-s" id="jl-corp"></div>
+    </div>
+    <div class="jpanel gov" id="jp-gov" style="left:340px;top:570px">
+      <div class="jpanel-head"><div class="jph-t">🏛️ Government Paths</div><button class="jph-close" onclick="tog('gov')">✕</button></div>
+      <div class="jlist gov gov-s" id="jl-gov"></div>
+    </div>
+    <div class="jpanel free" id="jp-free" style="left:660px;top:570px">
+      <div class="jpanel-head"><div class="jph-t">💻 Freelance Paths</div><button class="jph-close" onclick="tog('free')">✕</button></div>
+      <div class="jlist free free-s" id="jl-free"></div>
+    </div>
+    <div class="jpanel part" id="jp-part" style="left:980px;top:570px">
+      <div class="jpanel-head"><div class="jph-t">⏰ Part-time Paths</div><button class="jph-close" onclick="tog('part')">✕</button></div>
+      <div class="jlist part part-s" id="jl-part"></div>
+    </div>
+  </div>
+</div>
 
-  <script>
-    /* ── Audio commands map ─────────────────────────────────────── */
-    const commands = {
-      "chacha": "audio/bkchodi-mt-kar-cid.mp3",
-      "aa": "audio/chicken-on-tree-screaming.mp3",
-      "pakad lo": "audio/chodu-cid-pakad-le.mp3",
-      "cid": "audio/cid.mp3",
-      "cid mdc": "audio/cid-le-mdc.mp3",
-      "cid tum": "audio/cid-tum-bkl-f.mp3",
-      "repta": "audio/ek-gand-pe-repta-mara-n-sarak-pe-hagta-firega.mp3",
-      "yash": "audio/ek-jhaat-bhar-ka-aadmi.mp3",
-      "faaah": "audio/faaah.mp3",
-      "cheda": "audio/kya-cheda-bhosdi.mp3",
-      "kyu re": "audio/kyu-re-madarchod-cid.mp3",
-      "bhojyam": "audio/modi-ji-bhojyam.mp3",
-      "wah modi": "audio/modi-ji-wah.mp3",
-      "nikal jao": "audio/nikal-jao-mere-lo-e-ke-samne-se_y19lYpE.mp3",
-      "topper": "audio/topper-sumit_urPWSIj.mp3",
-      "ye le": "audio/ye-le-la-e.mp3"
-    };
-    const defaultAudio = "audio/faaah.mp3";
+<div class="sbar">
+  <div class="sb-l">
+    <div class="sa"><div class="sd"></div>Live</div>
+    <span id="sb-cls">Class 10th — Entry Level</span>
+    <span id="sb-exec">0 / 4 tracks opened</span>
+  </div>
+  <div class="sb-r">
+    <span id="sb-tip">Click a node to explore · Scroll to zoom · Drag to pan</span>
+    <span>CareerFlow v3 Advanced</span>
+  </div>
+</div>
 
-    /* ── DOM refs ────────────────────────────────────────────────── */
-    const dot = document.getElementById("dot");
-    const statusText = document.getElementById("statusText");
-    const transcript = document.getElementById("transcript");
-    const nowplaying = document.getElementById("nowplaying");
-    const startBtn = document.getElementById("startBtn");
-    const player = document.getElementById("audioPlayer");
+<script>
+const D={
+10:{
+  corp:[
+    {e:'💻',n:'Software Developer Trainee',o:'TCS · Wipro · Startups · IT Firms',hot:true,
+     prog:[{l:'Trainee',s:'₹18k'},{l:'Junior Dev',s:'₹35k'},{l:'Mid Dev',s:'₹65k'},{l:'Senior/Arch',s:'₹1.5L+'}],
+     become:['Complete 6-month coding bootcamp: HTML, CSS, JS, Python on YouTube (free)','Build 3 projects on GitHub + deploy one live website as portfolio','Appear for TCS NQT or Infosys InfyTQ entry-level test (10th pass accepted)','Add AWS Cloud Practitioner cert — it doubles your interview shortlist rate'],
+     chips:['Coding Bootcamp','GitHub Portfolio','TCS NQT'],sal:'₹18k–35k/mo'},
+    {e:'⚙️',n:'ITI Trade Technician → Engineer',o:'L&T · Bosch · Tata Motors · BHEL',
+     prog:[{l:'Apprentice',s:'₹15k'},{l:'Technician',s:'₹28k'},{l:'Supervisor',s:'₹55k'},{l:'Sr Engineer',s:'₹90k+'}],
+     become:['Complete 2-year ITI in Electrician, Fitter, or Welder trade (NCVT certified)','Register on apprenticeshipindia.gov.in for paid apprenticeship at L&T, Bosch','After 2 years ITI: apply for lateral entry into Diploma (saves 2 years)','Diploma → B.Tech lateral entry at Tier 2 engineering college = Engineer designation'],
+     chips:['ITI NCVT Cert','Lateral Diploma Entry','APPRENTICESHIP Portal'],sal:'₹15k–28k/mo'},
+    {e:'🎨',n:'Graphic Designer → Creative Director',o:'Design Agencies · D2C Brands · AdAgencies',
+     prog:[{l:'Junior',s:'₹20k'},{l:'Mid Designer',s:'₹45k'},{l:'Senior',s:'₹80k'},{l:'Creative Dir',s:'₹1.8L+'}],
+     become:['Learn Canva first (1 week) then Adobe Illustrator + Photoshop via YouTube','Create 10 sample projects: logos, social media kits, brand identity packs','Upload portfolio to Behance.net — recruiters actively search here','Adobe Certified Professional exam boosts salary by 30–40% in interviews'],
+     chips:['Adobe Certified','Behance Portfolio','Brand Identity Packs'],sal:'₹20k–45k/mo'},
+    {e:'📱',n:'Digital Marketing Executive → CMO',o:'D2C Brands · Marketing Agencies · Startups',
+     prog:[{l:'Trainee',s:'₹18k'},{l:'Executive',s:'₹35k'},{l:'Manager',s:'₹70k'},{l:'CMO/Head',s:'₹2L+'}],
+     become:['Complete Google Digital Garage + Meta Blueprint Certification (both 100% free)','Run real ad campaigns even for a local shop — show results in portfolio','Learn Google Analytics 4 + SEO basics on Semrush Academy (free)','Get a digital marketing internship and prove ROAS improvement = hiring gold'],
+     chips:['Google Ads Cert','Meta Blueprint','ROAS Proof'],sal:'₹18k–35k/mo'},
+    {e:'🎧',n:'Technical Support → IT Manager',o:'TCS · Wipro · Dell · HP · Infosys',
+     prog:[{l:'L1 Support',s:'₹18k'},{l:'L2 Engineer',s:'₹35k'},{l:'L3 Specialist',s:'₹65k'},{l:'IT Manager',s:'₹1.2L+'}],
+     become:['Get CompTIA A+ certification — it is the industry standard for tech support entry','Learn ITSM tools: Freshdesk, Zendesk, ServiceNow (free trials available)','Aim for L2 in 12 months: resolve complex tickets + mentor L1 team members','ITIL Foundation cert = fast track to L3 and Team Lead roles'],
+     chips:['CompTIA A+','ITIL Foundation','ServiceNow Skills'],sal:'₹18k–35k/mo'},
+    {e:'📦',n:'Supply Chain Exec → Operations Head',o:'Amazon · Flipkart · Delhivery · Meesho',
+     prog:[{l:'Associate',s:'₹18k'},{l:'Sr Associate',s:'₹28k'},{l:'Team Lead',s:'₹50k'},{l:'Ops Manager',s:'₹1L+'}],
+     become:['Apply directly on Amazon/Flipkart careers portal (10th pass eligible)','Learn Excel (VLOOKUP, pivot tables) + basic WMS (Warehouse Mgmt System) free online','After 1 year: target Team Lead by showing process improvement initiatives','APICS CPIM certification (after 2 years experience) = ₹20k salary jump instantly'],
+     chips:['Excel + WMS','APICS CPIM','Process Improvement'],sal:'₹18k–28k/mo'},
+  ],
+  gov:[
+    {e:'🚂',n:'Railway Group D → Inspector',o:'Indian Railways — RRB Recruitment',hot:true,
+     prog:[{l:'Group D',s:'₹18k'},{l:'Group C (GDCE)',s:'₹28k'},{l:'Jr Supervisor',s:'₹45k'},{l:'Section Engr',s:'₹60k+'}],
+     become:['Clear RRB Group D written exam (10th pass): Reasoning, Math, GK, Science','Physical Efficiency Test: run 1000m in 4min 15sec (male) / 1000m in 6min (female)','After 2 years service: appear for GDCE exam to upgrade from Group D → Group C','Continue departmental exams every 3 years for Supervisor and beyond'],
+     chips:['RRB Group D Exam','Physical Test','GDCE Promotion Path'],sal:'₹18k–22k/mo'},
+    {e:'🛡️',n:'Agniveer Army → Permanent Soldier',o:'Indian Army (4-Year Agniveer Scheme)',hot:true,
+     prog:[{l:'Agniveer',s:'₹30k'},{l:'Naib Subedar',s:'₹45k'},{l:'Subedar',s:'₹60k'},{l:'Subedar Major',s:'₹90k+'}],
+     become:['Apply on joinindianarmy.nic.in when rally announced in your district — stay updated','Physical: 1600m run in 5min 30sec, 10 pullups, balance beam, 9-feet ditch crossing','Written exam: General Knowledge, Simple Math, Science — class 10 level syllabus','25% Agniveers retained after 4 years → permanent career + ₹11.71L corpus for others'],
+     chips:['Physical Fitness Daily','Written Exam Prep','25% Retention Focus'],sal:'₹30k–40k/mo'},
+    {e:'✈️',n:'Agniveer Vayu → Air Force Sergeant',o:'Indian Air Force (STAR Entry Scheme)',hot:true,
+     prog:[{l:'Agniveer Vayu',s:'₹30k'},{l:'Corporal',s:'₹40k'},{l:'Sergeant',s:'₹56k'},{l:'Master WO',s:'₹1L+'}],
+     become:['10th PCM mandatory; apply on agnipathvayu.cdac.in when intake opens','STAR exam: Science + Technology + Aptitude + Reasoning — 60 questions, 45 minutes','Physical: 1.6km run in 8 min, push-ups, sit-ups + strict medical standards','After 4 years: 25% selected for permanent service; focus on this 25% from day one'],
+     chips:['10th PCM Required','STAR Exam Prep','Physical Standards'],sal:'₹30k–40k/mo'},
+    {e:'📮',n:'SSC MTS → Upper Division Clerk',o:'SSC / India Post / Central Govt',
+     prog:[{l:'MTS/Peon',s:'₹18k'},{l:'LDC Grade',s:'₹25k'},{l:'UDC',s:'₹35k'},{l:'Section Officer',s:'₹60k+'}],
+     become:['SSC MTS exam: Paper 1 (Numerical, Reasoning, English, GK) — 10th standard level','Paper 2: Descriptive (Letter writing + Short Essay in Hindi/English) — 30 marks','Typing test: 15 WPM Hindi / 35 WPM English on computer (practice daily!)','After 3 years in MTS: appear for LDCE departmental exam for LDC promotion'],
+     chips:['SSC MTS Exam','Typing Speed 35WPM','LDCE Departmental Exam'],sal:'₹18k–22k/mo'},
+    {e:'👮',n:'Police Constable → Sub Inspector',o:'State Police Forces Across India',
+     prog:[{l:'Constable',s:'₹21k'},{l:'Head Constable',s:'₹30k'},{l:'ASI',s:'₹42k'},{l:'Sub Inspector',s:'₹65k+'}],
+     become:['Follow your state police recruitment calendar (UP Police, Rajasthan Police, etc.)','Physical: 5km run in 24 minutes for male; 2.5km in 15 minutes for female','Written: GK, Hindi/English, Reasoning, Computer Basics — prepare 2–3 months','After 5 years: departmental exam for Head Constable; SI exam requires merit + seniority'],
+     chips:['State Police Exam','Physical Fitness','Departmental SI Exam'],sal:'₹21k–35k/mo'},
+  ],
+  free:[
+    {e:'🎨',n:'Graphic Designer → Agency Owner',o:'Fiverr · Upwork · 99designs · Direct',hot:true,
+     prog:[{l:'₹500/gig',s:'₹8k'},{l:'₹3k/gig',s:'₹40k'},{l:'₹15k/gig',s:'₹90k'},{l:'Agency',s:'₹3L+'}],
+     become:['Learn Canva (1 week free) → Illustrator → Photoshop via YouTube (2 months)','Create 10 sample logos/brand kits: upload to Behance + Dribbble for portfolio proof','Open Fiverr gig starting at ₹500 — deliver in 24 hrs, collect 5-star reviews fast','After 50+ reviews: raise prices by 10x, target ₹$100–500/project from US/UK clients'],
+     chips:['Fiverr Gig Strategy','Behance + Dribbble','Dollar Rate Pricing'],sal:'₹8k–3L+/mo'},
+    {e:'🎬',n:'Video Editor → Post-Production Director',o:'YouTube · Instagram Brands · Ad Agencies',hot:true,
+     prog:[{l:'Basic Editor',s:'₹15k'},{l:'Reel Expert',s:'₹35k'},{l:'Ad Film Editor',s:'₹80k'},{l:'Post Director',s:'₹2.5L+'}],
+     become:['Start with CapCut (free phone app) → DaVinci Resolve (free PC software)','Edit 20 videos for free for local creators — build a strong reel of your best work','Join creator economy: pitch your services to YouTube channels with 10k–100k subscribers','Master After Effects motion graphics → corporate ad rates go up 3–5x immediately'],
+     chips:['DaVinci Resolve Free','Creator Economy Pitch','After Effects Motion'],sal:'₹15k–2.5L+/mo'},
+    {e:'🤖',n:'AI Labeller → Senior AI Trainer',o:'Scale AI · Outlier · Remotasks · Appen',hot:true,
+     prog:[{l:'Basic Labeler',s:'₹15k'},{l:'Senior Labeler',s:'₹35k'},{l:'QA Lead',s:'₹60k'},{l:'AI Trainer',s:'₹1.2L+'}],
+     become:['Sign up on Outlier.ai or Remotasks.com — no degree or experience required','Complete free training modules and pass quality threshold test (take seriously!)','Focus on high-paying task types: Code review, Math verification, Creative writing RLHF','Consistent 95%+ quality score → invited to premium projects paying 3–5x normal rate'],
+     chips:['Outlier.ai Signup','95%+ Quality Score','RLHF Premium Tasks'],sal:'₹15k–1.2L+/mo'},
+    {e:'🌐',n:'WordPress Dev → Web Agency',o:'Local Businesses · Agencies · E-commerce',
+     prog:[{l:'Basic Sites',s:'₹15k'},{l:'Custom WP Dev',s:'₹40k'},{l:'WooCommerce Expert',s:'₹75k'},{l:'Agency Owner',s:'₹2L+'}],
+     become:['Learn HTML/CSS basics in 2 weeks (freeCodeCamp, YouTube) then dive into WordPress','Build 3 demo websites: restaurant, portfolio, doctor — host them for free on InfinityFree','First client: charge ₹5k for a simple site, then ₹15k, then ₹30k as you gain reviews','Add WooCommerce e-commerce skill → charge ₹50k per online store setup (high demand)'],
+     chips:['WordPress + WooCommerce','3 Demo Sites Built','Local Client First'],sal:'₹15k–75k/mo'},
+    {e:'📱',n:'Social Media Manager → Agency',o:'Local Brands · Influencers · D2C Startups',
+     prog:[{l:'1 Client ₹5k',s:'₹5k'},{l:'3 Clients',s:'₹25k'},{l:'5 Clients',s:'₹60k'},{l:'Team + Agency',s:'₹2L+'}],
+     become:['Grow your own Instagram to 1000+ followers first — this is your live portfolio','Learn Meta Business Suite, Buffer scheduling + Canva for professional content','Offer 1-month free trial to a local business, then charge ₹8k/month ongoing retainer','5 clients at ₹15k = ₹75k/month → hire a content creator and start your social agency'],
+     chips:['Own 1k+ IG Page','Meta Business Suite','Retainer Model 5 Clients'],sal:'₹5k–2L+/mo'},
+  ],
+  part:[
+    {e:'🛵',n:'Delivery Partner → Fleet Owner',o:'Zomato · Swiggy · Blinkit · Porter',hot:true,
+     prog:[{l:'Delivery Boy',s:'₹15k'},{l:'Top Earner',s:'₹30k'},{l:'2-Bike Owner',s:'₹50k'},{l:'Mini Fleet 5+',s:'₹1.5L+'}],
+     become:['Register on Zomato or Swiggy delivery partner app with bike, DL and Aadhaar','Peak hours (12–2pm, 7–10pm) = 3x order surge — earn ₹800–1200/day in peak zones','Save ₹5k/month for 12 months = ₹60k to buy 2nd bike → rent to another delivery partner','5 bikes rented at ₹10k/bike/month = ₹50k passive income while you still work full time'],
+     chips:['Peak Hour Strategy','2nd Bike Investment','Fleet Rental Business'],sal:'₹15k–1.5L+/mo'},
+    {e:'📚',n:'Home Tutor → EdTech Creator',o:'Local Students · Vedantu · YouTube',hot:true,
+     prog:[{l:'2–3 Students',s:'₹8k'},{l:'Online Batches',s:'₹30k'},{l:'Platform Partner',s:'₹75k'},{l:'Course Creator',s:'₹2L+'}],
+     become:['Start with 2–3 local class 8–10 students at ₹1500–2000/month per student','Record 10 free YouTube lessons in your best subject → build subscriber base','At 1000 YouTube subscribers: apply to Vedantu or Unacademy as partner teacher','Create a pre-recorded Udemy course in your subject — earns passive income even while you sleep'],
+     chips:['YouTube Free Lessons','Vedantu Partner','Udemy Passive Course'],sal:'₹8k–2L+/mo'},
+    {e:'🛒',n:'Meesho Reseller → D2C Brand',o:'Meesho · Amazon · Instagram Shop',hot:true,
+     prog:[{l:'Meesho Reseller',s:'₹5k'},{l:'Own Catalog',s:'₹25k'},{l:'Online Brand',s:'₹75k'},{l:'Distributor',s:'₹3L+'}],
+     become:['Start on Meesho: zero investment, share catalog to WhatsApp groups of 200+ contacts','Visit Surat/Delhi wholesale market for direct sourcing — 3x better margin than Meesho catalog','Open Amazon Seller account with GST registration to reach 400M+ customers instantly','Run Instagram Shop + Meta ads at ₹200/day targeting → profitable in 30 days if product fits'],
+     chips:['Meesho Zero Investment','Wholesale Direct Sourcing','Amazon Seller GST'],sal:'₹5k–3L+/mo'},
+    {e:'📱',n:'Content Creator → Media Brand',o:'YouTube · Instagram · Moj · Brand Deals',hot:true,
+     prog:[{l:'0–1k Subs',s:'₹0'},{l:'10k = Brand Deals',s:'₹15k'},{l:'100k = Full Income',s:'₹70k'},{l:'1M+ = Media Co',s:'₹3L+'}],
+     become:['Pick a high-CPM micro-niche: finance tips, study vlogs, tech in Hindi, cooking hacks','Post 3 Reels per week + 1 YouTube video per week — consistency beats quality in early stages','At 10k Instagram: cold DM 20 small brands for paid collab (₹3k–10k per sponsored post)','Monetize stack: YouTube AdSense + brand deals + affiliate links + your own digital product'],
+     chips:['High-CPM Niche','3 Reels/Week Discipline','Brand Deal Cold DM'],sal:'₹0 → ₹3L+/mo'},
+  ]
+},
+12:{
+  corp:[
+    {e:'💻',n:'Software Developer → Senior Engineer',o:'IT Startups · Product Companies · MNCs',hot:true,
+     prog:[{l:'Fresher',s:'₹35k'},{l:'Junior Dev',s:'₹60k'},{l:'Senior Dev',s:'₹1.2L'},{l:'Tech Lead/Arch',s:'₹3L+'}],
+     become:['Learn DSA thoroughly: solve 150+ LeetCode problems focusing on Medium difficulty','Master Full Stack: React + Node.js/Django + SQL (MERN or PERN stack is most in demand)','Build 3 GitHub projects that solve real problems — deploy them live on Vercel/Railway','Crack TCS NQT, Infosys InfyTQ, or directly apply via LinkedIn referrals for best results'],
+     chips:['DSA LeetCode 150+','MERN / PERN Stack','3 Live GitHub Projects'],sal:'₹35k–1.2L/mo',rise:true},
+    {e:'🤖',n:'AI / ML Engineer → AI Lead',o:'AI Startups · Google · Microsoft · OpenAI',hot:true,
+     prog:[{l:'Fresher',s:'₹45k'},{l:'ML Engineer',s:'₹1L'},{l:'Senior MLE',s:'₹2L'},{l:'AI Lead/Dir',s:'₹5L+'}],
+     become:['12th PCM → B.Tech CS or complete Andrew Ng ML Specialization (Coursera, most respected)','Learn Python, NumPy, Pandas, Scikit-learn, then TensorFlow or PyTorch for deep learning','Enter Kaggle competitions in your area — a Top 10% rank is worth more than most degrees','Build 2 projects: one NLP (chatbot/summarizer) and one Computer Vision — deploy on Hugging Face'],
+     chips:['Andrew Ng Coursera','Kaggle Top 10%','Hugging Face Deployment'],sal:'₹45k–5L+/mo',rise:true},
+    {e:'📊',n:'Data Scientist → Head of Analytics',o:'Consulting · Fintech · E-commerce · BFSI',hot:true,
+     prog:[{l:'Analyst',s:'₹35k'},{l:'Sr Analyst',s:'₹70k'},{l:'Data Scientist',s:'₹1.5L'},{l:'Head Analytics',s:'₹3L+'}],
+     become:['Master SQL (Mode Analytics free course) + Python Pandas + Excel pivot tables first','Learn Power BI or Tableau for dashboards — both have free tiers for practice','Complete Google Data Analytics Professional Certificate on Coursera (highly recognized by HRs)','Build 3 Kaggle analysis projects with storytelling dashboards — link them in every application'],
+     chips:['SQL + Python Pandas','Google Data Analytics Cert','Kaggle 3 Projects'],sal:'₹35k–3L+/mo',rise:true},
+    {e:'🏦',n:'Bank PO → Deputy General Manager',o:'SBI · HDFC · ICICI · Kotak · Axis',hot:true,
+     prog:[{l:'PO Trainee',s:'₹38k'},{l:'Officer Gr II',s:'₹55k'},{l:'Branch Manager',s:'₹90k'},{l:'DGM/GM',s:'₹2.5L+'}],
+     become:['Complete any graduation then apply for IBPS PO or SBI PO exam (appear simultaneously)','Prepare Quant, Reasoning, English, Banking Awareness — use mock tests daily for 90 days','Score 90th percentile+ for SBI PO — Group Discussion and Personal Interview are decisive rounds','After PO: JAIIB and CAIIB banking exams = automatic 2 grade increments within 2–3 years'],
+     chips:['IBPS PO + SBI PO Both','90th Percentile Mock Tests','JAIIB + CAIIB Upgrade'],sal:'₹38k–2.5L+/mo'},
+    {e:'🎨',n:'UI/UX Designer → Design Director',o:'Product Startups · Agencies · E-commerce',hot:true,
+     prog:[{l:'Jr Designer',s:'₹35k'},{l:'Mid UX',s:'₹70k'},{l:'Senior UX',s:'₹1.5L'},{l:'Design Director',s:'₹3.5L+'}],
+     become:['Learn Figma (free) completely — Google UX Design Certificate on Coursera is the gold standard','Study design thinking, user psychology, accessibility, and Gestalt principles systematically','Build 3 case study projects showing: problem definition → user research → wireframes → final UI','Apply for startups via LinkedIn; portfolio companies (PhonePe, Swiggy, Meesho) hire freshers aggressively'],
+     chips:['Figma Expert','Google UX Design Cert','3 Case Studies Portfolio'],sal:'₹35k–3.5L+/mo',rise:true},
+    {e:'🤝',n:'HR Executive → Chief People Officer',o:'Large Corporates · Consulting · Startups',
+     prog:[{l:'HR Exec',s:'₹28k'},{l:'HR Manager',s:'₹55k'},{l:'Sr HR Manager',s:'₹90k'},{l:'CHRO / CPO',s:'₹2.5L+'}],
+     become:['BBA / BCom → MBA HR from recognized university OR XLRI PGDM-HRM for premium placement','Get SHRM-CP or PHRi global certification — adds ₹5–10k to salary in most corporates immediately','Master ATS systems: Darwinbox, SAP SuccessFactors, Keka — all have free trials and learning paths','Specialize in either HRBP (Business Partner) or Talent Acquisition — specialists earn 30% more than generalists'],
+     chips:['MBA HR / XLRI','SHRM-CP Certification','ATS System Mastery'],sal:'₹28k–2.5L+/mo'},
+  ],
+  gov:[
+    {e:'🏅',n:'IAS / IPS / IFS — UPSC CSE',o:'Central Government — All India Services',hot:true,
+     prog:[{l:'IAS Probationer',s:'₹56k'},{l:'Sub-Collector',s:'₹80k'},{l:'District Collector',s:'₹1.2L'},{l:'Secretary/Chief Sec',s:'₹2.25L+'}],
+     become:['Any graduation qualifies; begin prep 2–3 years before target year for best results','GS 1-4 covers History, Geography, Polity, Economy, Ethics, Science, Environment, IR','Choose a scoring optional (Sociology, Anthropology, PSIR, Literature) that suits your background','Mains answer writing practice daily is the single biggest differentiator — 3 answers per day minimum'],
+     chips:['2-3 Year Structured Prep','Scoring Optional Subject','Daily Mains Writing'],sal:'₹56k–2.25L/mo + Perks',rise:true},
+    {e:'💂',n:'NDA/CDS → Defence Officer',o:'Indian Army · Navy · Air Force',hot:true,
+     prog:[{l:'Lt/Pilot Off',s:'₹56k'},{l:'Captain/Flt Lt',s:'₹80k'},{l:'Major/Sqn Ldr',s:'₹1.1L'},{l:'Colonel/Gp Cpt',s:'₹2L+'}],
+     become:['12th PCM for NDA; any graduate for CDS — UPSC conducts both exams twice yearly','NDA written: Math (300 marks) + General Ability Test (600 marks) — very competitive','SSB interview is 5 days: Officer Intelligence Rating + Psychological tests + GTO + Personal Interview','Physical standards are strict and checked at every stage — run 2.4km daily from day 1'],
+     chips:['NDA PCM Written','SSB 5-Day Interview','Daily 2.4km Run'],sal:'₹56k–2L+/mo + Full Perks',rise:true},
+    {e:'🏦',n:'SSC CGL → Grade B Officer',o:'Income Tax · CBI · Customs · CAG · Audit',hot:true,
+     prog:[{l:'Inspector Gr C',s:'₹35k'},{l:'Sr Inspector',s:'₹50k'},{l:'Income Tax Off',s:'₹75k'},{l:'JCIT/DCIT',s:'₹1.5L+'}],
+     become:['Appear for SSC CGL after graduation; 4-tier exam process (Tier 1, 2, 3, 4)','Tier 2 is the key battleground: Advanced Math + English Comprehension decides your post preference','Top posts (Income Tax Inspector, CBI Sub-Inspector) need 95th percentile in Tier 2 combined','Grade preference order during counseling: CBI > IT Inspector > Customs Inspector > Audit Officer'],
+     chips:['SSC CGL 4-Tier','Tier 2 Advanced Math','Post Preference Strategy'],sal:'₹35k–1.5L+/mo'},
+    {e:'✈️',n:'Air Force AFCAT Officer',o:'Indian Air Force — Technical + Ground',hot:true,
+     prog:[{l:'Flying Officer',s:'₹56k'},{l:'Flight Lt',s:'₹80k'},{l:'Squadron Leader',s:'₹1.1L'},{l:'Group Captain',s:'₹2L+'}],
+     become:['AFCAT exam twice a year (April and August) for Flying and Ground Duty branches','Air Force Selection Board (AFSB): similar to SSB — 5-day selection at Mysore/Varanasi/Gandhinagar','Flying branch: strict eye site (6/6 uncorrected) + pilot aptitude tests at AFCSB Mysore','Ground Duty (Admin, Accounts, Education, Logistics) has wider age limit and more openings'],
+     chips:['AFCAT Written Exam','AFSB 5-Day Selection','Branch Strategy: Ground/Flying'],sal:'₹56k–2L+/mo + Full Perks',rise:true},
+    {e:'🔬',n:'Scientist B → Scientist H (DRDO/ISRO)',o:'DRDO · ISRO · BARC · CSIR Labs · DST',hot:true,
+     prog:[{l:'Scientist B',s:'₹35k'},{l:'Scientist D',s:'₹75k'},{l:'Scientist F',s:'₹1.2L'},{l:'Scientist G/H',s:'₹1.8L+'}],
+     become:['B.Tech/BE with good GATE score → DRDO Recruitment and Assessment Centre (RAC) exam','ISRO ICRB exam conducted irregularly — register for notifications at isro.gov.in immediately','BARC OCES: 1-year paid training school in Mumbai after B.Tech — highly competitive, very rewarding','PhD sponsored by DRDO/ISRO leads to Scientist D entry, skipping Scientist B and C levels entirely'],
+     chips:['GATE Rank + DRDO RAC','ISRO ICRB Registration','BARC OCES Training Program'],sal:'₹35k–1.8L+/mo',rise:true},
+  ],
+  free:[
+    {e:'🛠️',n:'Full-Stack Developer → Agency/CTO',o:'Upwork · Toptal · Direct US/UK Clients',hot:true,
+     prog:[{l:'Beginner',s:'₹25k'},{l:'Intermediate',s:'₹75k'},{l:'Expert',s:'₹1.5L'},{l:'Agency / CTO',s:'₹5L+'}],
+     become:['Master MERN stack (MongoDB, Express, React, Node) or Django + React — pick one and go deep','Niche specialization: SaaS MVPs, e-commerce, or FinTech dashboards earn 2–3x generalist rates','Create Upwork profile with 5 deployed projects; start slightly below market rate for first 5 reviews','Dollar pricing: ₹75k = just $900 — a medium 2-week project; US clients consider this very reasonable'],
+     chips:['MERN / Django Deep Dive','Niche: SaaS / FinTech','Dollar Pricing Strategy'],sal:'₹50k–5L+/mo',rise:true},
+    {e:'📱',n:'App Developer → CTO / Founder',o:'Startups · Play Store · Global Clients',hot:true,
+     prog:[{l:'Junior Dev',s:'₹30k'},{l:'App Developer',s:'₹80k'},{l:'Expert/Niche',s:'₹1.8L'},{l:'CTO / Founder',s:'₹5L+'}],
+     become:['Learn Flutter (Dart) — single codebase for iOS + Android — highest market demand currently','Build 3 apps and publish them on Google Play Store even as free apps — proves shipping ability','Specialize: FinTech apps, Health monitoring, or EdTech apps command 2x freelance rates','One published app on Product Hunt + GitHub portfolio = more powerful than any resume in job market'],
+     chips:['Flutter / React Native','3 Play Store Published Apps','Product Hunt Launch Day'],sal:'₹50k–5L+/mo',rise:true},
+    {e:'🧠',n:'Online Tutor → EdTech Brand Owner',o:'Vedantu · Unacademy · Udemy · YouTube',hot:true,
+     prog:[{l:'1:1 Tutor',s:'₹20k'},{l:'Group Batches',s:'₹60k'},{l:'Platform Teacher',s:'₹1.5L'},{l:'Own EdTech',s:'₹3L+'}],
+     become:['Start with 3 students at ₹3k/month each while in college — ₹9k immediately covers expenses','Create a free 10-video YouTube series on your best subject → algorithm pushes it to students organically','At 5000 YouTube subscribers: upload course on Udemy — once recorded, earns ₹10k–50k/month passively','Partner with Vedantu as registered teacher: minimum ₹50k/month guaranteed for top-rated educators'],
+     chips:['YouTube Free 10-Video Series','Udemy Passive Income','Vedantu Partner Registration'],sal:'₹20k–3L+/mo',rise:true},
+    {e:'🤖',n:'AI Consultant → AI Agency Founder',o:'SMBs · US/UK Remote Clients · SaaS Cos',hot:true,
+     prog:[{l:'AI Tool User',s:'₹25k'},{l:'Consultant',s:'₹70k'},{l:'Automation Expert',s:'₹1.5L'},{l:'AI Agency',s:'₹5L+'}],
+     become:['Master: ChatGPT, Claude API, Midjourney, n8n workflows, Make.com, Zapier automations','Build 3 automation systems for real businesses — email to CRM to report pipeline as live demo','Charge $500–2000/automation project to US/UK SMBs via Upwork and direct LinkedIn outreach','Package as monthly retainer: ₹50k/month per client to "manage and optimize AI tools" → 5 clients = ₹2.5L/mo'],
+     chips:['Claude API + n8n/Make','$500–2k Per Automation Project','5-Client Retainer Model'],sal:'₹30k–5L+/mo',rise:true},
+    {e:'✍️',n:'Copywriter → Content Strategy Agency',o:'SaaS Companies · Agencies · D2C Brands',
+     prog:[{l:'Junior Writer',s:'₹20k'},{l:'Sr Copywriter',s:'₹55k'},{l:'Content Strategist',s:'₹1L'},{l:'Agency Owner',s:'₹3L+'}],
+     become:['Study copywriting frameworks: AIDA, PAS, StoryBrand — read 5 books minimum before applying','Write 30 cold emails to SaaS companies with a free sample rewritten homepage as your pitch opener','Specialize in SaaS conversion copy or email marketing sequences — rates go ₹2 to ₹8/word here','Build profile on Contra.com or Maven.com (better than Fiverr for writing) — charge in USD from start'],
+     chips:['AIDA / PAS Frameworks','SaaS Homepage Cold Pitch','Contra.com USD Pricing'],sal:'₹20k–3L+/mo'},
+  ],
+  part:[
+    {e:'🎓',n:'Teaching Asst → Own Academy',o:'Private Colleges · Coaching · Vedantu',hot:true,
+     prog:[{l:'TA Intern',s:'₹12k'},{l:'Jr Instructor',s:'₹30k'},{l:'Sr Faculty',s:'₹80k'},{l:'Academy Head',s:'₹2L+'}],
+     become:['Apply for TA role at your own college in 2nd year — HODs readily give this to good students','Specialize in JEE Maths / NEET Biology — the highest-paying subject tutoring in India by far','Build personal YouTube channel for your subject: organic growth brings students to your paid batches','At 30 students in batch at ₹3000/month = ₹90k/month — more than most full-time jobs'],
+     chips:['College TA Role First','JEE/NEET Specialization','30-Student Batch ₹3k/mo'],sal:'₹12k–2L+/mo'},
+    {e:'💼',n:'Startup Intern → Early Employee + ESOP',o:'Seed Stage Startups — AngelList India',hot:true,
+     prog:[{l:'Unpaid Intern',s:'₹0–5k'},{l:'Paid Full-Time',s:'₹35k'},{l:'Team Lead',s:'₹90k'},{l:'ESOP Exit',s:'₹Crores'}],
+     become:['Apply to 30–50 startups weekly on Internshala, LinkedIn, AngelList India — persistence wins','Target Series A funded startups: good stipend + equity + massive learning curve + PPO chance','Negotiate ESOPs from day 1: even 0.1% of a ₹100Cr startup at exit = ₹10 lakh — ask for it','Convert internship to full-time by solving 3 real quantified problems: "I grew revenue by X" format'],
+     chips:['AngelList India + Internshala','0.1–0.5% ESOP Negotiation','Quantified Impact Statement'],sal:'₹0+ESOP → ₹90k/mo',rise:true},
+    {e:'🛒',n:'D2C Side Brand → 7-Figure Business',o:'Shopify · Amazon India · Instagram Commerce',hot:true,
+     prog:[{l:'Side Hustle',s:'₹10k'},{l:'Online Store',s:'₹60k'},{l:'Brand Scale',s:'₹2L'},{l:'Acquisition Exit',s:'₹Crores'}],
+     become:['Find underserved niche: regional snacks, pet accessories, sustainable stationery, niche apparel','Source on IndiaMART + create Shopify store (₹1500/mo) + dedicated Instagram brand account','Run ₹500/day Meta ads for 14 days — if ROAS (Return on Ad Spend) above 2x, confidently scale budget','At ₹10L/month revenue: apply to Blinkit/Zepto/quick commerce — exits at 2–3x annual revenue happen'],
+     chips:['Underserved Niche Discovery','Shopify + Meta Ads ROAS','Zepto/Blinkit Listing Path'],sal:'₹10k → ₹Crores',rise:true},
+    {e:'📸',n:'Photographer → Premium Studio Owner',o:'Weddings · Brand Shoots · Destination Events',
+     prog:[{l:'Free Assistant',s:'₹0'},{l:'Solo Shooter',s:'₹30k'},{l:'Premium Weddings',s:'₹1.5L'},{l:'Studio + Team',s:'₹5L+'}],
+     become:['Assist an experienced wedding photographer for free for 6 months — watch everything carefully','Invest ₹1–2L in used Sony a7 III or Canon R6 body only + 50mm prime lens (sufficient for 2 years)','Build Instagram portfolio: post 3 high-quality edited photos per day for 90 days straight','Premium pricing: destination weddings (Udaipur, Goa) charge ₹2–5L — one wedding = one month\'s income'],
+     chips:['6-Month Free Assist','Sony a7 III Investment','Instagram 90-Day Daily Post'],sal:'₹0 → ₹5L+/event'},
+  ]
+},
+g:{
+  corp:[
+    {e:'🚀',n:'Senior SDE → Staff Engineer / EM',o:'FAANG · Unicorns · High-Growth Tech',hot:true,
+     prog:[{l:'SDE-1',s:'₹60k'},{l:'SDE-2',s:'₹1.5L'},{l:'Staff Eng',s:'₹3L'},{l:'Principal/VP',s:'₹6L+'}],
+     become:['Solve 300+ LeetCode problems — 50 Easy, 200 Medium, 50 Hard — in 90 days focused sprint','Master System Design: read "Designing Data-Intensive Applications" + watch Gaurav Sen YouTube','Target referrals over job portals — a referral gives 5x higher interview conversion at FAANG companies','FAANG total compensation (TC) = base + RSUs + bonus; negotiate all 3 — TC of ₹1–3Cr/year is real'],
+     chips:['LeetCode 300 Problems','System Design DDIA Book','FAANG TC Negotiation RSU'],sal:'₹60k–6L+/mo',rise:true},
+    {e:'📈',n:'Investment Banker → MD / Partner',o:'Goldman Sachs · Morgan Stanley · Kotak IB',hot:true,
+     prog:[{l:'Analyst',s:'₹80k'},{l:'Associate',s:'₹1.5L'},{l:'VP',s:'₹3L'},{l:'MD / Partner',s:'₹10L+'}],
+     become:['B.Com/BBA + IIM/ISB MBA Finance is the most direct path into bulge-bracket banking','Alternatively: CA + CFA Level 1+2 for analyst roles without MBA — many choose this route','Excel financial modelling: DCF, LBO, Comparable Company Analysis — learn on Wall Street Prep','Cold email to VP-level bankers at firms you target: 1 coffee chat = more than 100 blind applications'],
+     chips:['IIM/ISB MBA Finance','CFA L1+L2 + CA','Wall Street Prep Modelling'],sal:'₹80k–10L+/mo',rise:true},
+    {e:'🧠',n:'Product Manager → CPO / Founder',o:'Top Tech Unicorns · Startups · Consulting',hot:true,
+     prog:[{l:'APM',s:'₹60k'},{l:'PM',s:'₹1.2L'},{l:'Senior PM',s:'₹2.5L'},{l:'CPO / Founder',s:'₹5L+'}],
+     become:['Read "Cracking the PM Interview" + subscribe to Lenny\'s Newsletter (most respected PM resource)','Complete Reforge or Product School certification — specifically mentioned in PM job descriptions','Easiest entry path: internal transfer from SDE or Data Analyst role — product knowledge + tech = perfect PM','Break into PM without tech background: join a startup as founding PM (equity + learning is the payoff)'],
+     chips:['Reforge Certification','Lenny\'s Newsletter','Internal Transfer Strategy'],sal:'₹60k–5L+/mo',rise:true},
+    {e:'⚖️',n:'Corporate Lawyer → Equity Partner',o:'BigLaw · In-house Counsel · Legal Tech',hot:true,
+     prog:[{l:'Associate',s:'₹45k'},{l:'Sr Associate',s:'₹1L'},{l:'Partner-Track',s:'₹2.5L'},{l:'Equity Partner',s:'₹10L+'}],
+     become:['5-yr BA LLB from NLU (CLAT top 300 rank) or 3-yr LLB from DU Faculty of Law → BigLaw','Target Big 4 law firms: AZB & Partners, Cyril Amarchand Mangaldas, Khaitan & Co, S&R Associates','Specialize: tech transactions, M&A, or private equity law — these practice areas pay 40% above average','General Counsel role at a unicorn startup: ₹2–5L/mo + ESOPs — often better than law firm partnership'],
+     chips:['CLAT NLU Top 300','AZB / Cyril Amarchand BigLaw','Tech M&A Specialization + ESOP'],sal:'₹45k–10L+/mo',rise:true},
+    {e:'🏗️',n:'Management Consultant → Partner',o:'McKinsey · BCG · Bain · Big4 Consulting',hot:true,
+     prog:[{l:'Business Analyst',s:'₹80k'},{l:'Consultant',s:'₹1.5L'},{l:'Engagement Mgr',s:'₹3L'},{l:'Partner',s:'₹8L+'}],
+     become:['IIM A/B/C → direct MBB recruitment (CAT 99th percentile + strong PI performance)','Pre-MBA: join Big 4 (Deloitte/EY) for consulting experience + MBA sponsor potential','Case interview prep is everything: solve 100+ cases on PrepLounge/CaseCoach before interview season','At MBB: publish thought leadership + build client relationships → fastest path to Partner promotion'],
+     chips:['IIM CAT 99th Percentile','100+ Case Interview Practice','McKinsey/BCG Direct Application'],sal:'₹80k–8L+/mo',rise:true},
+    {e:'🔬',n:'Research Scientist → Lab Director / Professor',o:'IITs · IISc · DRDO · Google Brain · Labs',hot:true,
+     prog:[{l:'PhD/JRF',s:'₹35k'},{l:'Post-Doc',s:'₹60k'},{l:'Scientist / Asst Prof',s:'₹1.2L'},{l:'Lab Director / Full Prof',s:'₹3L+'}],
+     become:['Clear GATE (top 500 for IIT/IISc) or CSIR NET/JRF for science PhD fellowships','IIT PhD: ₹35k–42k/month (tax free) + hostel + fee waiver — funded completely by MHRD/CSIR','After PhD: industry research labs pay ₹1.5–4L/month (Google Brain, Microsoft Research, Samsung)','IIT/NIT Assistant Professor cadre starts at ₹1.44L/month under 7th Pay Commission Academic Grade Pay'],
+     chips:['GATE Top 500 Rank','CSIR NET/JRF Fellowship','Industry Lab Post-PhD Path'],sal:'₹35k–4L+/mo',rise:true},
+  ],
+  gov:[
+    {e:'🏅',n:'IAS / IPS / IRS — UPSC CSE Top Rank',o:'Government of India — All India Services',hot:true,
+     prog:[{l:'Probationer SDM',s:'₹56k'},{l:'DM / SP',s:'₹80k'},{l:'Div Commissioner',s:'₹1.5L'},{l:'Secretary / DGP',s:'₹2.25L+ + Perks'}],
+     become:['Graduate (any stream) eligible; average successful candidate attempts 2.3 times — prepare for minimum 2 years','Daily study plan: 7 hours structured — 3hr GS + 2hr Optional + 1hr Current Affairs + 1hr Answer Writing','Mains is the real battleground — 1750 marks; writing style, structure, and content all matter equally','Interview (Personality Test): 275 marks — be honest, aware of current affairs, confident but not overconfident'],
+     chips:['7-Hour Daily Study Plan','Vision IAS / Vajiram Test Series','Mains Writing 1 Answer/Day'],sal:'₹56k–2.25L/mo + Bungalow + Car + Staff',rise:true},
+    {e:'⚖️',n:'Civil Judge → High Court Judge',o:'State Judiciary — District Courts',hot:true,
+     prog:[{l:'Civil Judge Jr Div',s:'₹45k'},{l:'Civil Judge Sr Div',s:'₹65k'},{l:'District Judge',s:'₹1.1L'},{l:'High Court Judge',s:'₹2.5L+'}],
+     become:['LLB (5-yr or 3-yr) → enroll with Bar Council → clear AIBE (All India Bar Exam) certification first','Appear for State Judicial Service exam: each High Court conducts its own exam (very different syllabi)','Prepare: CPC, CrPC, IPC, Indian Evidence Act, Constitution — all substantive + procedural laws in depth','After 7 years as District Judge: High Court recommendation or direct elevation by Supreme Court Collegium'],
+     chips:['LLB + AIBE Mandatory','State Judicial Service Exam','CPC + CrPC + Evidence Act'],sal:'₹45k–2.5L+/mo',rise:true},
+    {e:'💰',n:'RBI Grade B → Deputy Governor',o:'Reserve Bank of India — Monetary Policy',hot:true,
+     prog:[{l:'Grade B Officer',s:'₹55k'},{l:'Manager Grade A',s:'₹75k'},{l:'AGM',s:'₹1.1L'},{l:'DGM / ED / DG',s:'₹2.5L+'}],
+     become:['Hardest banking exam: 3-phase — Phase 1 (MCQ prelims) → Phase 2 (Economics Essay + Finance + Management + English) → Phase 3 (Interview)','Graduate with 60%+ required; 21–30 age limit strictly enforced — miss it and you cannot ever apply again','Study: Macroeconomics, Indian Financial System, Banking Regulation Act, RBI Acts, Monetary Policy Framework','RBI Officers regulate India\'s entire banking system and set monetary policy — true elite finance career'],
+     chips:['RBI Phase 1+2+3 Sequence','Macroeconomics + RBI Acts Mastery','Monetary Policy Framework Study'],sal:'₹55k–2.5L+/mo',rise:true},
+    {e:'🔬',n:'ISRO / DRDO Scientist → Director',o:'ISRO · DRDO · BARC · DST · CSIR',hot:true,
+     prog:[{l:'Scientist B',s:'₹45k'},{l:'Scientist D',s:'₹75k'},{l:'Scientist F/G',s:'₹1.2L'},{l:'Director / Secretary',s:'₹2.25L+'}],
+     become:['GATE rank + ISRO ICRB exam or DRDO RAC exam — each has different syllabus per engineering branch','BARC OCES programme: 1-year training school after B.Tech → highly coveted position in nuclear research','PhD pathway: CSIR-UGC NET JRF → research fellowship → directly enter at Scientist D level upon completion','Working on Chandrayaan, GSLV, PSLV, ASAT, Tejas fighter jet — cutting-edge Indian technology from day 1'],
+     chips:['GATE + ISRO ICRB Exam','BARC OCES 1-Year Training','CSIR JRF → Scientist D Path'],sal:'₹45k–2.25L+/mo',rise:true},
+    {e:'🌿',n:'IFS — Indian Forest Service',o:'Ministry of Environment & Forests (MoEF)',
+     prog:[{l:'ACF Probationer',s:'₹56k'},{l:'DCF',s:'₹80k'},{l:'CF',s:'₹1L'},{l:'PCCF / DGF',s:'₹2.25L+'}],
+     become:['UPSC IFS exam (separate from CSE, conducted simultaneously): PCM or Biology background preferred','Two optionals from: Forestry, Agriculture, Botany, Zoology, Chemistry, Math, Statistics, Geology, Civil Engg','State cadre allocation: manage forest divisions, wildlife sanctuaries, tribal forest rights, anti-poaching units','Perks: government bungalow in forest area, vehicle, household staff, free electricity — total comp very high'],
+     chips:['UPSC IFS Exam (Separate)','Science Optional Subjects','State Cadre Management'],sal:'₹56k–2.25L+/mo + All Perks'},
+    {e:'🎓',n:'Teaching → IIT/NIT Professor',o:'IITs · NITs · Central Universities · IISER',hot:true,
+     prog:[{l:'Lecturer',s:'₹45k'},{l:'Asst Professor',s:'₹1.44L'},{l:'Associate Prof',s:'₹1.72L'},{l:'Full Professor',s:'₹2.24L+'}],
+     become:['PhD from IIT/IISc/reputed university required for IIT faculty position — 5–7 years post B.Tech','GATE → IIT PhD (funded) → Post-Doc at top international university (1–3 years) → IIT faculty application','Teaching: UGC NET/JRF clears you for NIT and Central University professor posts (lesser competition)','Publish 5+ research papers in Q1/Q2 journals during PhD + post-doc — IITs check publication impact strictly'],
+     chips:['PhD IIT/IISc Required','Post-Doc International University','5+ Q1 Publications'],sal:'₹45k–2.24L+/mo',rise:true},
+  ],
+  free:[
+    {e:'🤖',n:'AI Engineer → AI Company Founder',o:'Global Remote · Y Combinator · Anthropic',hot:true,
+     prog:[{l:'AI Tool User',s:'₹30k'},{l:'AI Consultant',s:'₹1L'},{l:'AI Product Engineer',s:'₹3L'},{l:'AI Founder / CTO',s:'₹10L+'}],
+     become:['Master LLM APIs: OpenAI, Anthropic Claude, Gemini + LangChain + vector databases (Pinecone, Weaviate)','Build and deploy 3 real AI agents/chatbots for businesses — case studies are your entire sales pitch','Charge $2000–5000 per AI implementation to US/UK SMBs (affordable for them, transformational for you)','Launch an AI SaaS tool on Product Hunt: even $1000 MRR validates your concept → raise from angels → scale'],
+     chips:['LangChain + Claude API + RAG','$2k–5k AI Project Pricing','Product Hunt AI SaaS Launch'],sal:'₹1L–10L+/mo',rise:true},
+    {e:'📊',n:'Fractional CFO → CFO Advisory Firm',o:'Startups · SMEs · US/UK Remote CFO Platforms',hot:true,
+     prog:[{l:'Finance Consultant',s:'₹50k'},{l:'Fractional CFO',s:'₹1.5L'},{l:'3-Client Portfolio',s:'₹4L'},{l:'CFO Firm',s:'₹10L+'}],
+     become:['CA / CPA / CFA Level 3 + minimum 5 years relevant experience before going fractional — credibility first','Platforms: Paro.ai, Toptal Finance, CFO Connect — apply with portfolio of financial models and case studies','One startup client at $2500/month + two more = $7500/month working 40 hours per week total (₹6L+/mo)','Deliverables: financial models, pitch deck data room, investor reporting, board decks — extremely high value'],
+     chips:['CA + CFA Level 3 Required','Toptal Finance / Paro.ai','$2500/mo Retainer Per Client'],sal:'₹1L–10L+/mo',rise:true},
+    {e:'🚀',n:'SaaS Founder → VC-Backed Exit',o:'Your Company · Y Combinator · Sequoia Surge',hot:true,
+     prog:[{l:'Side Project',s:'₹0'},{l:'First ₹1k MRR',s:'₹50k'},{l:'Seed Funded',s:'₹2L+'},{l:'Series A / Exit',s:'₹Crores'}],
+     become:['Identify a B2B SaaS problem in a domain you have expert knowledge in — B2B monetizes 10x faster than B2C','Build MVP in 30 days maximum — ship ugly but functional; early customers tell you what to build next','Revenue first always: get 10 paying customers before writing a single line of code beyond MVP','Apply to Y Combinator (twice yearly) and Sequoia Surge / Antler India — getting to interview builds powerful network'],
+     chips:['30-Day B2B MVP Discipline','10 Paying Customers Before VC','YC + Sequoia Surge Application'],sal:'₹0 → ₹Crores',rise:true},
+    {e:'🎓',n:'Graduate Expert → Premium EdTech Brand',o:'Udemy · Teachable · YouTube · Community',hot:true,
+     prog:[{l:'Course Creator',s:'₹30k'},{l:'Top Educator',s:'₹1L'},{l:'Platform Owner',s:'₹3L'},{l:'EdTech Co / Exit',s:'₹Crores'}],
+     become:['Establish expertise signal: write 100 LinkedIn posts or 50 newsletter issues BEFORE making any video','Identify a specific gap: UPSC mains answer writing, DSA in regional language, MBA case interview prep in Hindi','Sell your first course for ₹499 to validate demand; then price at ₹4999 once reviews confirm quality','At 2000+ students: approach PhysicsWallah / Unacademy / BYJU as acquisition target — many sell for ₹5–50 Cr'],
+     chips:['100 LinkedIn Posts First','₹499 Validation Then ₹4999','PW / Unacademy Acquisition Target'],sal:'₹30k–Crores',rise:true},
+    {e:'⚖️',n:'Lawyer → Legal Tech Founder',o:'Legal Startups · Corporate Retainer · VCs',hot:true,
+     prog:[{l:'Indie Lawyer',s:'₹30k'},{l:'Niche Counsel',s:'₹80k'},{l:'Senior Partner',s:'₹2L'},{l:'Legal Tech Founder',s:'₹5L+'}],
+     become:['3 years at BigLaw or boutique corporate firm → build expertise + reputation + client relationships','Niche specialization: startup contracts, IP law, regulatory compliance, or M&A advisory = premium rates','Retainer model: 3 startups at ₹50k/month each = ₹1.5L/month guaranteed while you build your firm','Build a legal AI tool (contract automation, due diligence AI) — lawyers building legal tech = massive opportunity'],
+     chips:['BigLaw 3-Year Foundation','Startup Law Niche Retainer','Legal AI Tool Opportunity'],sal:'₹30k–5L+/mo',rise:true},
+    {e:'📹',n:'Expert Creator → Media Company',o:'YouTube · Substack · Podcast · Brand Deals',hot:true,
+     prog:[{l:'Expert Content',s:'₹10k'},{l:'Monetized Channel',s:'₹80k'},{l:'Brand Deals',s:'₹3L'},{l:'Media Company',s:'₹10L+'}],
+     become:['Write 100 LinkedIn posts or 50 newsletter issues to establish authority signal before creating video','YouTube: 2 long-form videos/month for SEO compounding + daily Shorts for rapid subscriber growth','At 100k subscribers negotiate brand deals directly: ₹50k–5L per video based on niche CPM value','Revenue stack: AdSense + direct brand deals + affiliate commissions + paid community + courses + books'],
+     chips:['Authority Signal 100 Posts First','YouTube SEO Long-form + Shorts','Direct Brand Deal Negotiation'],sal:'₹10k–10L+/mo',rise:true},
+  ],
+  part:[
+    {e:'💼',n:'Strategy Consultant → Advisory Firm',o:'SMEs · Startups · Govt Advisory Bodies',hot:true,
+     prog:[{l:'Project Basis',s:'₹30k'},{l:'Retainer Client',s:'₹80k'},{l:'3 Retainers',s:'₹2.5L'},{l:'Advisory Firm',s:'₹8L+'}],
+     become:['One full-time corporate role for 5+ years first → build domain expertise + client network → go independent','Target SMEs with ₹5–100Cr revenue: they urgently need MBA-level strategy but cannot afford Big 4 fees','Charge ₹50k/month retainer: OKR setting, strategy workshops, market research, financial model reviews','3 retainer clients part-time = ₹1.5L+/month → hire 2 fresh MBA graduates as consultants → scale your firm'],
+     chips:['5-Year Corporate Foundation','SME ₹50k/mo Retainer Strategy','2 Junior Consultants to Scale'],sal:'₹30k–8L+/mo',rise:true},
+    {e:'🏠',n:'Real Estate Broker → Portfolio Investor',o:'Property Markets · Commercial RE · REITs',hot:true,
+     prog:[{l:'RERA Agent',s:'₹20k'},{l:'Sr Broker',s:'₹80k'},{l:'Commercial Expert',s:'₹2L'},{l:'Portfolio Owner',s:'₹10L+'}],
+     become:['Get RERA agent registration in your state (mandatory, ₹10k–25k fee, processes in 30 days)','Join Anarock, Square Yards, or PropTiger for 1–2 years — learn deal structuring and client negotiation','Commercial real estate: one deal commission is often ₹2–10L (3-5% of transaction value)','Start investing yourself: REIT (Real Estate Investment Trusts) available from ₹300/unit on NSE/BSE — build rental income passively'],
+     chips:['RERA Registration Mandatory','Anarock / Square Yards First Job','REIT Passive Investing ₹300/unit'],sal:'₹20k–10L+/mo',rise:true},
+    {e:'🎤',n:'Domain Expert → Keynote Speaker',o:'Corporate L&D · TEDx · College Circuits',hot:true,
+     prog:[{l:'Free Speaking',s:'₹0'},{l:'Paid Sessions',s:'₹20k'},{l:'Corporate Trainer',s:'₹1L'},{l:'Keynote Speaker',s:'₹5L+/event'}],
+     become:['Join Toastmasters International (₹3k/year membership) — speak at 20 free events to build comfort + rep','Create one signature 45-minute talk on your domain: data-backed, story-driven, framework-based','Apply to TEDx events (each city organizes independently) — accepted TEDx talk is permanent credibility asset','Corporate L&D clients (Tata, Infosys, HDFC, Deloitte) pay ₹50k–5L/session for expert domain trainings'],
+     chips:['Toastmasters 20 Free Events','Signature 45-Min Framework Talk','TEDx Application + Corporate L&D'],sal:'₹0 → ₹5L+/event',rise:true},
+    {e:'📊',n:'Startup Advisor + Fractional CXO',o:'Pre-Seed Startups · Accelerators · VCs',hot:true,
+     prog:[{l:'Mentor/Advisor',s:'0.1–0.5% Equity'},{l:'Fractional CXO',s:'₹80k/mo'},{l:'Operating Partner',s:'₹2L/mo'},{l:'Co-Founder',s:'₹Exit Value'}],
+     become:['Build 10,000+ LinkedIn followers in your domain — this is your entire sales funnel for advisory','Offer 2 hours/week advisory to 3 startups in exchange for 0.1–0.5% ESOP in each — compound over 5 years','Convert the best relationship to Fractional CMO/CTO role: 40% time commitment for 40% equivalent salary','At ₹10Cr+ startup exit: each 0.5% ESOP = ₹5 lakh cash — 5 such holdings = ₹25L from side activities'],
+     chips:['10k LinkedIn Followers Funnel','ESOP 0.5% Per Startup × 5','Fractional CMO/CTO Conversion'],sal:'Equity → ₹2L+/mo',rise:true},
+    {e:'🌐',n:'Angel Investor → VC Partner',o:'LetsVenture · Ah! Ventures · Family Offices',hot:true,
+     prog:[{l:'First Angel Check',s:'₹5–10L Invest'},{l:'Portfolio 5 Cos',s:'Returns'},{l:'LP in Micro VC',s:'₹Returns'},{l:'VC Partner',s:'₹Crores carried'}],
+     become:['Build domain expertise + network for 7+ years before writing first angel check — timing matters','Join LetsVenture.com or Ah! Ventures for curated dealflow — access pre-vetted startups without needing HNI status','First investment: ₹5–10L for 1–5% equity in a genuine pre-seed startup solving a real problem you understand','Carried interest (20% of profits) at VC level is where real wealth is built — ₹100Cr fund × 3x = ₹60Cr carries'],
+     chips:['LetsVenture.com Dealflow','₹5–10L First Angel Check','VC Carried Interest 20% Model'],sal:'₹0 → ₹Crores over time',rise:true},
+  ]
+}
+};
 
-    /* ── State ───────────────────────────────────────────────────── */
-    let recognition = null;
-    let isPlaying = false;
-    let started = false;
-    let restartTimer = null;
+let cls=10, open=new Set(), scale=.85, px=0, py=0, drag=false, lx=0, ly=0;
+const CATS=['corp','gov','free','part'];
+const CN={corp:'var(--corp)',gov:'var(--gov)',free:'var(--free)',part:'var(--part)'};
 
-    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+function renderJobs(c){
+  const d=D[c];
+  CATS.forEach(cat=>{
+    const jobs=d[cat];
+    document.getElementById(`cc-${cat}`).textContent=`${jobs.length} roles`;
+    const ul=document.getElementById(`jl-${cat}`);
+    ul.innerHTML=jobs.map(j=>`
+      <div class="jcard">
+        <div class="jcard-top">
+          <div class="jcard-emo">${j.e}</div>
+          <div>
+            <div class="jcard-nm">${j.n}${j.hot?'<span class="hot">🔥 HOT</span>':''}${j.rise?'<span class="rise">↗ Rising</span>':''}</div>
+            <div class="jcard-org">${j.o}</div>
+          </div>
+        </div>
+        <div class="jcard-prog">
+          ${j.prog.map((p,i)=>`
+            <div class="prog-step">
+              <div class="prog-dot" style="--step-c:${CN[cat]}">${i+1}</div>
+              <div class="prog-lbl">${p.l}</div>
+              <div class="prog-sal" style="--step-c:${CN[cat]}">${p.s}</div>
+            </div>`).join('')}
+        </div>
+        <div class="become-section">
+          <div class="become-title">🗺 How to Become & Earn More</div>
+          ${j.become.map((b,i)=>`<div class="bstep"><div class="bstep-num">${i+1}</div><span>${b}</span></div>`).join('')}
+        </div>
+        <div class="jcard-bot">
+          ${j.chips.map(ch=>`<span class="jchip">${ch}</span>`).join('')}
+          <span class="jsal">${j.sal}</span>
+        </div>
+      </div>`).join('');
+  });
+  const PAY={
+    10:{corp:'₹18k → ₹3L+',gov:'₹18k → ₹1.5L+',free:'₹15k → ₹3L+',part:'₹5k → ₹1.5L+',t1:'4 Tracks',t2:'20 Roles',t3:'Up to ₹3L+/mo',desc:'Every card shows exact 4-step progression: how to start, how to grow, and how to earn more — from trainee to industry leader.'},
+    12:{corp:'₹35k → ₹6L+',gov:'₹35k → ₹2.25L+',free:'₹25k → ₹5L+',part:'₹10k → ₹Crores',t1:'4 Tracks',t2:'20 Roles',t3:'Up to ₹10L+/mo',desc:'Post-12th paths. Freshers earn ₹35k–70k in year 1. Follow the 4 detailed roadmap steps in each card to accelerate into expert level.'},
+    g:{corp:'₹60k → ₹10L+',gov:'₹56k → ₹2.25L+',free:'₹50k → ₹Crores',part:'₹30k → ₹Crores',t1:'4 Tracks',t2:'22 Roles',t3:'₹Crores Potential',desc:'Graduate level. Each card shows exact progression from expert entry to top of the field — plus the exact how-to steps to get there.'}
+  };
+  const p=PAY[c];
+  CATS.forEach(cat=>document.getElementById(`cv-${cat}`).textContent=p[cat]);
+  document.getElementById('tp1').textContent=p.t1;
+  document.getElementById('tp2').textContent=p.t2;
+  document.getElementById('tp3').textContent=p.t3;
+  document.getElementById('cls-desc').textContent=p.desc;
+}
 
-    /* ── UI helpers ──────────────────────────────────────────────── */
-    function setListening() {
-      dot.className = "dot listening";
-      statusText.textContent = "Listening...";
-      statusText.style.color = "#e74c3c";
-      nowplaying.textContent = "";
-    }
+function nc(id,side){
+  const el=document.getElementById(id);
+  const x=parseInt(el.style.left),y=parseInt(el.style.top),w=el.offsetWidth,h=el.offsetHeight;
+  if(side==='top') return{x:x+w/2,y};
+  if(side==='bot') return{x:x+w/2,y:y+h};
+  return{x:x+w/2,y:y+h/2};
+}
+function bez(x1,y1,x2,y2){const cy=(y1+y2)/2;return`M${x1} ${y1} C${x1} ${cy},${x2} ${cy},${x2} ${y2}`;}
+function drawLines(){
+  const svg=document.getElementById('svgl');svg.innerHTML='';
+  function ap(d,cat,attr,val){
+    const b=document.createElementNS('http://www.w3.org/2000/svg','path');
+    b.setAttribute('d',d);b.setAttribute('class',`lb ${cat}`);svg.appendChild(b);
+    const p=document.createElementNS('http://www.w3.org/2000/svg','path');
+    p.setAttribute('d',d);p.setAttribute('class',`lp ${cat}${val?' dim':''}`);
+    if(attr) p.setAttribute(attr,val||cat);svg.appendChild(p);
+  }
+  const tb=nc('trig','bot');
+  CATS.forEach(cat=>{ const nt=nc(`nc-${cat}`,'top');ap(bez(tb.x,tb.y,nt.x,nt.y),cat); });
+  CATS.forEach(cat=>{
+    const nb=nc(`nc-${cat}`,'bot'),pt=nc(`jp-${cat}`,'top'),mid=(nb.y+pt.y)/2;
+    const d=`M${nb.x} ${nb.y} L${nb.x} ${mid} L${pt.x} ${mid} L${pt.x} ${pt.y}`;
+    const b=document.createElementNS('http://www.w3.org/2000/svg','path');
+    b.setAttribute('d',d);b.setAttribute('class',`lb ${cat}`);svg.appendChild(b);
+    const p=document.createElementNS('http://www.w3.org/2000/svg','path');
+    p.setAttribute('d',d);p.setAttribute('class',`lp ${cat} dim`);
+    p.setAttribute('data-panel-line',cat);svg.appendChild(p);
+  });
+}
 
-    function setPlaying(label) {
-      dot.className = "dot playing";
-      statusText.textContent = "Playing audio";
-      statusText.style.color = "#1abc9c";
-      nowplaying.textContent = label ? "▶ " + label : "▶ default";
-    }
+function tog(cat){
+  const panel=document.getElementById(`jp-${cat}`),node=document.getElementById(`nc-${cat}`),isOpen=open.has(cat);
+  if(isOpen){open.delete(cat);panel.classList.remove('show');node.classList.remove('open');document.querySelectorAll(`[data-panel-line="${cat}"]`).forEach(p=>p.classList.add('dim'));}
+  else{open.add(cat);panel.classList.add('show');node.classList.add('open');document.querySelectorAll(`[data-panel-line="${cat}"]`).forEach(p=>p.classList.remove('dim'));}
+  const n=open.size;
+  document.getElementById('sb-exec').textContent=`${n} / 4 tracks opened`;
+  document.getElementById('sb-tip').textContent=n===4?'🔥 All tracks explored! Your career roadmap is complete!':'Click a node to explore career paths';
+}
 
-    function setIdle(msg) {
-      dot.className = "dot";
-      statusText.textContent = msg || "Idle";
-      statusText.style.color = "#555";
-    }
+function setC(c){
+  cls=c;
+  ['b10','b12','bg'].forEach(id=>document.getElementById(id).classList.remove('on'));
+  document.getElementById({10:'b10',12:'b12',g:'bg'}[c]).classList.add('on');
+  document.getElementById('cls-lbl').textContent={10:'Class 10th',12:'Class 12th',g:'Graduate 🎓'}[c];
+  document.getElementById('sb-cls').textContent={10:'Class 10th — Entry Level',12:'Class 12th — Post Board',g:'Graduate — Expert Level'}[c];
+  renderJobs(c);
+  open.clear();
+  CATS.forEach(cat=>{document.getElementById(`jp-${cat}`).classList.remove('show');document.getElementById(`nc-${cat}`).classList.remove('open');document.querySelectorAll(`[data-panel-line="${cat}"]`).forEach(p=>p.classList.add('dim'));});
+  document.getElementById('sb-exec').textContent='0 / 4 tracks opened';
+  document.getElementById('sb-tip').textContent='Click a node to explore career paths';
+}
 
-    /* ── Safe restart ────────────────────────────────────────────── */
-    function safeStart() {
-      if (!recognition || isPlaying) return;
-      clearTimeout(restartTimer);
-      try { recognition.start(); } catch (e) { /* already running */ }
-    }
-
-    /* ── Build recognition object ────────────────────────────────── */
-    function setupRecognition() {
-      if (!SR) return;
-      recognition = new SR();
-      recognition.lang = "en-US";
-      recognition.continuous = false;   // restart manually = more reliable
-      recognition.interimResults = false;
-      recognition.maxAlternatives = 3;       // check up to 3 guesses per utterance
-
-      recognition.onstart = () => {
-        if (!isPlaying) setListening();
-      };
-
-      recognition.onresult = (event) => {
-        /* Check all alternatives for any matching keyword */
-        for (let alt = 0; alt < event.results[0].length; alt++) {
-          const text = event.results[0][alt].transcript.trim().toLowerCase();
-
-          for (let key in commands) {
-            if (text.includes(key)) {
-              transcript.textContent = `You said: "${text}"`;
-              playAudio(commands[key], key);
-              return;
-            }
-          }
-        }
-
-        /* No match across all alternatives — play default */
-        const heard = event.results[0][0].transcript.trim();
-        transcript.textContent = `You said: "${heard}" — no match`;
-        playAudio(defaultAudio, null);
-      };
-
-      recognition.onerror = (event) => {
-        /* Silently restart on non-fatal errors */
-        if (event.error === "no-speech" || event.error === "aborted") {
-          if (!isPlaying) restartTimer = setTimeout(safeStart, 100);
-          return;
-        }
-        if (event.error === "not-allowed") {
-          setIdle("Microphone access denied");
-          return;
-        }
-        /* Any other error — retry after short delay */
-        if (!isPlaying) restartTimer = setTimeout(safeStart, 400);
-      };
-
-      recognition.onend = () => {
-        /* This fires after every recognition cycle — restart immediately */
-        if (!isPlaying) restartTimer = setTimeout(safeStart, 80);
-      };
-    }
-
-    /* ── Play audio ──────────────────────────────────────────────── */
-    function playAudio(src, label) {
-      isPlaying = true;
-      clearTimeout(restartTimer);
-      try { recognition.stop(); } catch (e) { }
-
-      setPlaying(label);
-      player.src = src;
-      player.play().catch(() => {
-        isPlaying = false;
-        setIdle("Audio error — resuming mic");
-        restartTimer = setTimeout(safeStart, 500);
-      });
-    }
-
-    /* Restart mic the moment audio finishes */
-    player.onended = () => {
-      isPlaying = false;
-      setListening();
-      restartTimer = setTimeout(safeStart, 150);
-    };
-
-    player.onerror = () => {
-      isPlaying = false;
-      setIdle("File not found — resuming mic");
-      restartTimer = setTimeout(safeStart, 500);
-    };
-
-    /* ── Init (triggered by button click) ───────────────────────── */
-    function initVoice() {
-      if (!SR) {
-        alert("Web Speech API is not supported in this browser.\nTry Chrome or Edge.");
-        return;
-      }
-
-      startBtn.disabled = true;
-      startBtn.textContent = "Mic active";
-
-      navigator.mediaDevices.getUserMedia({ audio: true })
-        .then(stream => {
-          /* Release the temporary stream — SpeechRecognition manages its own */
-          stream.getTracks().forEach(t => t.stop());
-
-          if (!started) {
-            setupRecognition();
-            started = true;
-          }
-          safeStart();
-        })
-        .catch(() => {
-          setIdle("Microphone access denied");
-          startBtn.disabled = false;
-          startBtn.textContent = "Start Listening";
-        });
-    }
-  </script>
-
+function runAll(){CATS.forEach((cat,i)=>setTimeout(()=>{if(!open.has(cat))tog(cat);},i*200));}
+function applyT(){document.getElementById('world').style.transform=`translate(${px}px,${py}px) scale(${scale})`;document.getElementById('zlbl').textContent=Math.round(scale*100)+'%';}
+function zm(d){scale=Math.max(.25,Math.min(2.2,scale+d));applyT();}
+function resetV(){scale=.8;px=30;py=30;applyT();}
+const cv=document.getElementById('canvas');
+cv.addEventListener('mousedown',e=>{if(e.target.closest('.node')||e.target.closest('.jpanel'))return;drag=true;lx=e.clientX;ly=e.clientY;cv.classList.add('gbn');});
+window.addEventListener('mousemove',e=>{if(!drag)return;px+=e.clientX-lx;py+=e.clientY-ly;lx=e.clientX;ly=e.clientY;applyT();});
+window.addEventListener('mouseup',()=>{drag=false;cv.classList.remove('gbn');});
+cv.addEventListener('wheel',e=>{e.preventDefault();zm(e.deltaY<0?.07:-.07);},{passive:false});
+let tlx=0,tly=0;
+cv.addEventListener('touchstart',e=>{tlx=e.touches[0].clientX;tly=e.touches[0].clientY;},{passive:true});
+cv.addEventListener('touchmove',e=>{px+=e.touches[0].clientX-tlx;py+=e.touches[0].clientY-tly;tlx=e.touches[0].clientX;tly=e.touches[0].clientY;applyT();},{passive:true});
+window.addEventListener('load',()=>{
+  renderJobs(10);
+  ['trig','nc-corp','nc-gov','nc-free','nc-part'].forEach((id,i)=>{const el=document.getElementById(id);if(el)el.style.animationDelay=`${i*.08}s`;});
+  setTimeout(()=>{drawLines();resetV();},100);
+});
+</script>
 </body>
-
 </html>
