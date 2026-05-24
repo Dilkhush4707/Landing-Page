@@ -3,7 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Task Management Kanban Board</title>
+    <title>Responsive Kanban Board</title>
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mobile-drag-drop@2.3.0-rc.2/default.css">
+    <script src="https://cdn.jsdelivr.net/npm/mobile-drag-drop@2.3.0-rc.2/index.min.js"></script>
+
     <style>
         /* --- CSS STYLES --- */
         :root {
@@ -29,12 +33,18 @@
         h1 {
             margin-bottom: 20px;
             color: var(--primary-color);
+            text-align: center;
         }
 
+        /* Responsive Controls */
         .controls {
             margin-bottom: 30px;
             display: flex;
             gap: 10px;
+            width: 100%;
+            max-width: 500px;
+            flex-wrap: wrap; /* Allows wrapping on very small screens */
+            justify-content: center;
         }
 
         .controls input {
@@ -42,7 +52,8 @@
             font-size: 16px;
             border: 1px solid #ccc;
             border-radius: 4px;
-            width: 300px;
+            flex: 1; /* Takes up available space */
+            min-width: 200px;
         }
 
         .controls button {
@@ -54,16 +65,19 @@
             border-radius: 4px;
             cursor: pointer;
             transition: background-color 0.2s;
+            white-space: nowrap;
         }
 
         .controls button:hover {
             background-color: var(--hover-color);
         }
 
+        /* Responsive Board */
         .board {
             display: flex;
+            flex-wrap: wrap; /* Crucial for responsiveness */
             gap: 20px;
-            align-items: flex-start;
+            justify-content: center; /* Centers columns when they wrap */
             width: 100%;
             max-width: 1000px;
         }
@@ -71,7 +85,9 @@
         .column {
             background-color: var(--column-bg);
             border-radius: 6px;
-            width: 33%;
+            flex: 1; /* Allows columns to grow and shrink */
+            min-width: 280px; /* Prevents columns from getting too skinny */
+            max-width: 350px;
             padding: 10px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             display: flex;
@@ -87,7 +103,7 @@
         }
 
         .column-content {
-            min-height: 250px; /* Gives space to drop even if empty */
+            min-height: 250px;
             display: flex;
             flex-direction: column;
             gap: 10px;
@@ -103,6 +119,9 @@
             justify-content: space-between;
             align-items: center;
             word-break: break-word;
+            /* Prevents text selection while dragging on mobile */
+            user-select: none; 
+            -webkit-user-select: none;
         }
 
         .task:active {
@@ -126,6 +145,17 @@
 
         .delete-btn:hover {
             color: #cc0000;
+        }
+
+        /* Mobile specific adjustments */
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            .column {
+                min-width: 100%; /* Columns take full width on small screens */
+                max-width: 100%;
+            }
         }
     </style>
 </head>
@@ -156,9 +186,16 @@
     </div>
 
     <script>
+        // Initialize Mobile Drag and Drop Polyfill
+        MobileDragDrop.polyfill({
+            dragImageTranslateOverride: MobileDragDrop.scrollBehaviourDragImageTranslateOverride
+        });
+
+        // Prevent default scrolling when touch dragging
+        window.addEventListener('touchmove', function() {}, {passive: false});
+
         let taskCounter = 0;
 
-        // Function to create a new task
         function addTask() {
             const taskInput = document.getElementById('task-input');
             const taskText = taskInput.value.trim();
@@ -181,12 +218,10 @@
                 <button class="delete-btn" onclick="deleteTask('${taskId}')" title="Delete Task">X</button>
             `;
 
-            // Always add new tasks to the "To Do" column
             document.getElementById('todo').appendChild(taskElement);
-            taskInput.value = ''; // Reset input field
+            taskInput.value = ''; 
         }
 
-        // Function to delete a task
         function deleteTask(id) {
             const task = document.getElementById(id);
             if (task) {
@@ -194,7 +229,6 @@
             }
         }
 
-        // --- Drag and Drop Functions ---
         function drag(event) {
             event.dataTransfer.setData("text", event.target.id);
             event.target.classList.add('dragging');
@@ -205,7 +239,7 @@
         }
 
         function allowDrop(event) {
-            event.preventDefault(); // Necessary to allow dropping
+            event.preventDefault(); 
         }
 
         function drop(event) {
@@ -213,7 +247,6 @@
             const data = event.dataTransfer.getData("text");
             const draggableElement = document.getElementById(data);
             
-            // Find the closest valid drop zone (the .column-content div)
             const dropzone = event.target.closest('.column-content');
             
             if (dropzone && draggableElement) {
@@ -221,7 +254,6 @@
             }
         }
 
-        // Allow adding tasks by pressing the "Enter" key
         document.getElementById("task-input").addEventListener("keypress", function(event) {
             if (event.key === "Enter") {
                 event.preventDefault();
