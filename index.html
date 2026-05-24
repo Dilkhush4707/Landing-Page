@@ -43,7 +43,7 @@
             gap: 10px;
             width: 100%;
             max-width: 500px;
-            flex-wrap: wrap; /* Allows wrapping on very small screens */
+            flex-wrap: wrap;
             justify-content: center;
         }
 
@@ -52,7 +52,7 @@
             font-size: 16px;
             border: 1px solid #ccc;
             border-radius: 4px;
-            flex: 1; /* Takes up available space */
+            flex: 1;
             min-width: 200px;
         }
 
@@ -75,9 +75,9 @@
         /* Responsive Board */
         .board {
             display: flex;
-            flex-wrap: wrap; /* Crucial for responsiveness */
+            flex-wrap: wrap;
             gap: 20px;
-            justify-content: center; /* Centers columns when they wrap */
+            justify-content: center;
             width: 100%;
             max-width: 1000px;
         }
@@ -85,8 +85,8 @@
         .column {
             background-color: var(--column-bg);
             border-radius: 6px;
-            flex: 1; /* Allows columns to grow and shrink */
-            min-width: 280px; /* Prevents columns from getting too skinny */
+            flex: 1;
+            min-width: 280px;
             max-width: 350px;
             padding: 10px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
@@ -114,18 +114,18 @@
             border-radius: 4px;
             padding: 15px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.15);
-            cursor: grab;
+            cursor: pointer; /* Changed to pointer to indicate it's clickable */
             display: flex;
             justify-content: space-between;
             align-items: center;
             word-break: break-word;
-            /* Prevents text selection while dragging on mobile */
             user-select: none; 
             -webkit-user-select: none;
+            transition: transform 0.1s;
         }
 
         .task:active {
-            cursor: grabbing;
+            transform: scale(0.98); /* Slight click effect */
         }
 
         .task.dragging {
@@ -153,7 +153,7 @@
                 padding: 10px;
             }
             .column {
-                min-width: 100%; /* Columns take full width on small screens */
+                min-width: 100%;
                 max-width: 100%;
             }
         }
@@ -168,7 +168,7 @@
         <button onclick="addTask()">Add Task</button>
     </div>
 
-    <div class="board">
+    <div class="board" id="kanban-board">
         <div class="column">
             <h3>To Do</h3>
             <div class="column-content" id="todo" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
@@ -186,12 +186,11 @@
     </div>
 
     <script>
-        // Initialize Mobile Drag and Drop Polyfill
+        // Initialize Mobile Drag and Drop Polyfill (Long-press to drag)
         MobileDragDrop.polyfill({
             dragImageTranslateOverride: MobileDragDrop.scrollBehaviourDragImageTranslateOverride
         });
 
-        // Prevent default scrolling when touch dragging
         window.addEventListener('touchmove', function() {}, {passive: false});
 
         let taskCounter = 0;
@@ -229,6 +228,31 @@
             }
         }
 
+        // --- Tap to Move Logic ---
+        document.getElementById('kanban-board').addEventListener('click', function(event) {
+            // Ignore clicks on the delete button so it doesn't move and delete at the same time
+            if (event.target.classList.contains('delete-btn')) {
+                return;
+            }
+
+            // Find the closest task card that was clicked
+            const clickedTask = event.target.closest('.task');
+            
+            if (clickedTask) {
+                // Determine which column it is currently in
+                const currentColumnId = clickedTask.parentElement.id;
+
+                // Move to the next logical column
+                if (currentColumnId === 'todo') {
+                    document.getElementById('in-progress').appendChild(clickedTask);
+                } else if (currentColumnId === 'in-progress') {
+                    document.getElementById('done').appendChild(clickedTask);
+                }
+                // If it's in 'done', it stays there.
+            }
+        });
+
+        // --- Drag and Drop Functions ---
         function drag(event) {
             event.dataTransfer.setData("text", event.target.id);
             event.target.classList.add('dragging');
